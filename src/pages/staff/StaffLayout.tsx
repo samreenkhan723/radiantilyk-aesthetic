@@ -42,11 +42,6 @@ export default function StaffLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-<<<<<<< HEAD
-  const [mfaChecked, setMfaChecked] = useState(false);
-  const [mfaOk, setMfaOk] = useState(false);
-  const { showWarning, countdown, staySignedIn } = useIdleLogout(!!user);
-=======
 
   // Privileged roles requiring MFA (aal2)
   const isPrivileged = isOwner || isAdmin || isNP || role === "provider" || roles.includes("provider");
@@ -55,7 +50,6 @@ export default function StaffLayout() {
 
   const { showWarning, countdown, staySignedIn } = useIdleLogout(!!user);
 
->>>>>>> cd31bb39e529f5d9fb45d96e8f9ca4fa0c0ed23c
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
   useEffect(() => {
