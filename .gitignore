@@ -13,6 +13,9 @@ dist-ssr
 *.local
 public/handbook/
 
+# Auto-generated Lovable MCP file (contains local absolute paths)
+supabase/functions/mcp/index.ts
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
