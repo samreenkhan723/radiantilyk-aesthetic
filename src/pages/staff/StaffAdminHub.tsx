@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Users, ShieldCheck, BookOpen, ShieldAlert, CheckCircle2,
   Lock, HardDrive, Eye, Activity, ArrowUpRight, Laptop, Building2,
-  Calendar, CheckSquare, Zap
+  Calendar, CheckSquare, Zap, History as HistoryIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -139,7 +139,7 @@ export default function StaffAdminHub() {
 
   const QUICK_ACTIONS = [
     { to: "/staff/team", label: "Staff Management", desc: "Manage members, roles & pending approvals", icon: Users },
-    { to: "/staff/audit-report", label: "Audit Logs", desc: "PHI access logs & system audit history", icon: History },
+    { to: "/staff/audit-report", label: "Audit Logs", desc: "PHI access logs & system audit history", icon: HistoryIcon },
     { to: "/staff/hipaa-policies", label: "HIPAA Policies", desc: "Privacy, security & risk analysis documentation", icon: BookOpen },
     { to: "/staff/vendors?tab=devices", label: "Device Inventory", desc: "Workstations, encryption & serial numbers", icon: Laptop },
     { to: "/staff/vendors", label: "Vendor Management", desc: "Vendor registry & BAA compliance", icon: Building2 },

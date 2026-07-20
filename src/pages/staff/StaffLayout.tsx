@@ -1,41 +1,22 @@
-<<<<<<< HEAD
 import { useMemo, useState, useEffect } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate, Navigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-=======
-import { Link, NavLink, useNavigate, Outlet, Navigate, useLocation } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
 import { useAuth, clearDemoAuthSession } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Loader2, Calendar as CalIcon, Clock, Users, LogOut, FileText, UserCircle2, Menu, X,
-  DollarSign, Inbox, BarChart3, History, Megaphone, Smartphone, Sun, BookOpen, CreditCard,
-  ChevronDown, ChevronRight, Stethoscope, MessageSquare, Boxes, Package, Star, AlertTriangle,
-  Settings, ShieldCheck, ShieldAlert, Zap, LayoutDashboard, Shield, Lock, KeyRound,
-  FileCheck, FileCode, Laptop, Building2, Eye, HardDrive, Activity
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import { CommandPalette } from "@/components/CommandPalette";
-import { KeyboardShortcutsHelp } from "@/components/staff/KeyboardShortcutsHelp";
->>>>>>> e2d81a3ecaab7a0bf70c59c8f7a686d126ac4b7d
 import { usePendingBookings } from "@/hooks/usePendingBookings";
+import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { supabase } from "@/integrations/supabase/client";
-import { clearDemoAuthSession } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import { CommandPalette } from "@/components/CommandPalette";
+import { KeyboardShortcutsHelp } from "@/components/staff/KeyboardShortcutsHelp";
+import { StaffBottomNav } from "@/components/staff/StaffBottomNav";
+import {
   Menu, Sun, Inbox, MessageSquare, Calendar as CalIcon, Clock, CreditCard,
   Stethoscope, ShieldCheck, ShieldAlert, Boxes, UserCircle2, Star, Users,
-  BookOpen, Lock, History, Laptop, Building2, ChevronDown, ChevronRight, LogOut, Loader2
+  BookOpen, Lock, History as HistoryIcon, Laptop, Building2, ChevronDown, ChevronRight, LogOut, Loader2
 } from "lucide-react";
 import rkaLogo from "@/assets/rka-logo.webp";
 
@@ -61,23 +42,15 @@ export default function StaffLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-<<<<<<< HEAD
 
   // Privileged roles requiring MFA (aal2)
   const isPrivileged = isOwner || isAdmin || isNP || role === "provider" || roles.includes("provider");
   const [mfaOk, setMfaOk] = useState(true);
   const [mfaChecked, setMfaChecked] = useState(false);
-=======
-  const [mfaChecked, setMfaChecked] = useState(false);
-  const [mfaOk, setMfaOk] = useState(false);
-<<<<<<< HEAD
-  const { showWarning, countdown, staySignedIn } = useIdleLogout(!!user);
-=======
 
-  useIdleLogout(!!user);
->>>>>>> cb345dceafa23ebc8ef813f1aec444fbe233a0c3
+  const { showWarning, countdown, staySignedIn } = useIdleLogout(!!user);
+
   useEffect(() => { setOpen(false); }, [location.pathname]);
->>>>>>> e2d81a3ecaab7a0bf70c59c8f7a686d126ac4b7d
 
   useEffect(() => {
     if (!user) { setMfaChecked(true); return; }
@@ -132,7 +105,7 @@ export default function StaffLayout() {
   const adminNavItems: NavItem[] = useMemo(() => [
     { to: "/staff/admin", label: "Compliance Dashboard", icon: ShieldCheck },
     { to: "/staff/team", label: "Staff Management", icon: Users },
-    { to: "/staff/audit-report", label: "Audit Logs", icon: History },
+    { to: "/staff/audit-report", label: "Audit Logs", icon: HistoryIcon },
     { to: "/staff/hipaa-policies", label: "HIPAA Policies", icon: BookOpen },
     { to: "/staff/vendors?tab=devices", label: "Device Inventory", icon: Laptop },
     { to: "/staff/vendors", label: "Vendor Management", icon: Building2 },
@@ -445,8 +418,6 @@ export default function StaffLayout() {
           <Outlet />
         </main>
       </div>
-<<<<<<< HEAD
-=======
 
       <StaffBottomNav
         canCheckout={isAdmin || isScheduler || isReceptionist || isStaff}
@@ -470,7 +441,6 @@ export default function StaffLayout() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
->>>>>>> e2d81a3ecaab7a0bf70c59c8f7a686d126ac4b7d
     </div>
   );
 }
