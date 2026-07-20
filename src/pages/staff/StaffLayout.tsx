@@ -146,18 +146,9 @@ export default function StaffLayout() {
         show: true,
         children: [
           { to: "/staff/clients", label: "All Clients", icon: UserCircle2 },
-          { to: "/staff/feedback", label: "Feedback & Reviews", icon: Star },
         ],
       },
-      {
-        key: "checkout",
-        label: "Checkout",
-        icon: CreditCard,
-        show: canCheckout,
-        children: [
-          { to: "/staff/checkout", label: "Walk-in Checkout", icon: CreditCard },
-        ],
-      },
+
       {
         key: "clinical",
         label: "Clinical",
@@ -168,6 +159,10 @@ export default function StaffLayout() {
           { to: "/staff/clinical/cosign", label: "Cosign Queue", icon: ShieldCheck },
           { to: "/staff/clinical/safety", label: "Safety & Protocols", icon: ShieldAlert },
           { to: "/staff/compliance", label: "My Compliance", icon: ShieldCheck },
+          { to: "/staff/hipaa-policies", label: "HIPAA Policies", icon: BookOpen },
+          { to: "/staff/audit-report", label: "Audit Report", icon: HistoryIcon },
+          { to: "/staff/breach-report", label: "Incident / Breach Reports", icon: ShieldAlert },
+          { to: "/staff/vendors", label: "Vendors / Device Inventory", icon: Laptop },
           { to: "/staff/inventory", label: "Inventory", icon: Boxes },
         ],
       },
