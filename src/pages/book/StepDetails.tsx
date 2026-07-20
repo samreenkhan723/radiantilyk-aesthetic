@@ -57,6 +57,18 @@ export const StepDetails = ({
         </span>
       </label>
 
+      <label className="mt-3 flex items-start gap-3 rounded-xl border border-border p-4 cursor-pointer hover:bg-secondary/30 transition">
+        <input
+          type="checkbox"
+          checked={!!client.marketingOptIn}
+          onChange={(e) => setClient({ ...client, marketingOptIn: e.target.checked })}
+          className="mt-1 h-4 w-4 accent-primary"
+        />
+        <span className="text-sm text-muted-foreground leading-relaxed">
+          Subscribe to the newsletter for exclusive specials, skincare tips, and event invites via email. You can unsubscribe at any time.
+        </span>
+      </label>
+
       <label className={`mt-3 flex items-start gap-3 rounded-xl border p-4 cursor-pointer hover:bg-secondary/30 transition ${fieldErrors.nppAck ? "border-destructive" : "border-border"}`}>
         <input
           type="checkbox"

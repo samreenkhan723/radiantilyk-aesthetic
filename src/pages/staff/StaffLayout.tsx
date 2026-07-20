@@ -9,6 +9,15 @@ import {
   Settings, ShieldCheck, ShieldAlert, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import { CommandPalette } from "@/components/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/staff/KeyboardShortcutsHelp";
 import { usePendingBookings } from "@/hooks/usePendingBookings";
@@ -30,7 +39,7 @@ export default function StaffLayout() {
   const [open, setOpen] = useState(false);
   const [mfaChecked, setMfaChecked] = useState(false);
   const [mfaOk, setMfaOk] = useState(false);
-  useIdleLogout(!!user);
+  const { showWarning, countdown, staySignedIn } = useIdleLogout(!!user);
   useEffect(() => { setOpen(false); }, [location.pathname]);
   useEffect(() => {
     if (!user) { setMfaChecked(false); return; }
@@ -324,6 +333,20 @@ export default function StaffLayout() {
 
       <CommandPalette isAdmin={isAdmin} />
       <KeyboardShortcutsHelp />
+
+      <AlertDialog open={showWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you still there?</AlertDialogTitle>
+            <AlertDialogDescription>
+              For patient privacy, you will be automatically signed out in {countdown} seconds due to inactivity.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={staySignedIn}>Stay Signed In</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
