@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "sdk_version": "0.23.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://moqxtvbdgfambpmmslrr.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "radiantilyk-mcp",
+      "version": "0.2.0",
+      "title": "Radiantilyk Aesthetic"
+    },
+    "tools": [
+      {
+        "name": "whoami",
+        "title": "Who am I",
+        "description": "Return the signed-in staff user's identity: user id, email, staff id (if any), display name, and assigned roles.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_todays_schedule",
+        "title": "List today's schedule",
+        "description": "Return today's appointments (America/Los_Angeles) visible to the signed-in staff user, ordered by start time.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_appointments",
+        "title": "List appointments",
+        "description": "List appointments visible to the signed-in staff user within a date range (inclusive). Dates are ISO 8601 (YYYY-MM-DD). Row-Level Security limits results to what the caller is allowed to see.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "description": "Start date, YYYY-MM-DD."
+            },
+            "to": {
+              "type": "string",
+              "description": "End date, YYYY-MM-DD (inclusive)."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Max rows (default 50)."
+            }
+          },
+          "required": [
+            "from",
+            "to"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_clients",
+        "title": "Search clients",
+        "description": "Search clients by name, email, or phone (case-insensitive substring). Row-Level Security limits results to what the caller is allowed to see. PHI — use only when the user needs client contact info.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 2,
+              "description": "Name, email, or phone fragment (min 2 chars)."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Max rows (default 10)."
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_client_summary",
+        "title": "Get client summary",
+        "description": "Return a client's profile, upcoming appointments (next 5), recent appointments (last 5), active credits, and active vouchers. PHI — use only when the user needs a client overview.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Client email (preferred if known)."
+            },
+            "client_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Client UUID."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_clinical_notes",
+        "title": "List clinical notes for a client",
+        "description": "List chart notes for a client, most recent first. PHI — restricted by Row-Level Security. Retatrutide-tagged notes are restricted to Kiem only.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Client email."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Max rows (default 10)."
+            }
+          },
+          "required": [
+            "email"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_sales",
+        "title": "List recent sales",
+        "description": "List completed (paid) sales within a date range with totals, discount, tip, and client. Dates are YYYY-MM-DD, inclusive.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string",
+              "description": "Start date, YYYY-MM-DD."
+            },
+            "to": {
+              "type": "string",
+              "description": "End date, YYYY-MM-DD (inclusive)."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Max rows (default 50)."
+            }
+          },
+          "required": [
+            "from",
+            "to"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_services",
+        "title": "List services",
+        "description": "List active services in the catalog with pricing and duration. Optional case-insensitive name filter.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "description": "Optional name fragment."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "description": "Max rows (default 100)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_staff",
+        "title": "List staff",
+        "description": "List active staff members with title, credentials, and contact email.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
