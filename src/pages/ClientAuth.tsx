@@ -9,6 +9,8 @@ import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { setDemoAuthSession } from "@/hooks/useAuth";
+
 const signupSchema = z.object({
   firstName: z.string().trim().min(1, "Required").max(60),
   lastName: z.string().trim().min(1, "Required").max(60),
@@ -38,10 +40,22 @@ export default function ClientAuth() {
     setLoading(true);
 
     if (mode === "signin") {
+      const cleanEmail = form.email.trim().toLowerCase();
+
+      // Demo fallback for user@gmail.com
+      if (cleanEmail === "user@gmail.com" && form.password === "12345678") {
+        setDemoAuthSession("user@gmail.com", []);
+        setLoading(false);
+        toast.success("Signed in as Demo User");
+        navigate("/account", { replace: true });
+        return;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
-        email: form.email.trim().toLowerCase(),
+        email: cleanEmail,
         password: form.password,
       });
+
       setLoading(false);
       if (error) {
         const msg = error.message?.toLowerCase() ?? "";
@@ -143,6 +157,28 @@ export default function ClientAuth() {
       <SiteHeader />
       <main className="flex-1 flex items-start justify-center px-4 py-10 md:py-16">
         <div className="w-full max-w-sm">
+          {/* Portal Switcher Tabs */}
+          <div className="flex items-center justify-between p-1 mb-6 rounded-xl bg-muted/60 border border-border text-xs font-medium">
+            <Link
+              to="/staff/login?role=admin"
+              className="flex-1 py-2 rounded-lg text-muted-foreground hover:text-foreground transition text-center"
+            >
+              Admin Login
+            </Link>
+            <Link
+              to="/staff/login?role=staff"
+              className="flex-1 py-2 rounded-lg text-muted-foreground hover:text-foreground transition text-center"
+            >
+              Staff Login
+            </Link>
+            <button
+              type="button"
+              className="flex-1 py-2 rounded-lg bg-background text-foreground shadow-sm transition text-center font-semibold"
+            >
+              User Login
+            </button>
+          </div>
+
           <div className="text-center mb-8">
             <h1 className="font-serif text-3xl">{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
             <p className="text-sm text-muted-foreground mt-2">
@@ -151,6 +187,20 @@ export default function ClientAuth() {
                 : "Save your details for faster booking next time."}
             </p>
           </div>
+
+          {mode === "signin" && (
+            <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
+              <div className="font-semibold text-foreground mb-1">⚡ Quick Demo User Credentials</div>
+              <div className="text-muted-foreground mb-2">Click below to auto-fill demo user login details:</div>
+              <button
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, email: "user@gmail.com", password: "12345678" }))}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium"
+              >
+                👤 <strong>Demo User Account</strong><br /><span className="text-[10px] text-muted-foreground">user@gmail.com (Password: 12345678)</span>
+              </button>
+            </div>
+          )}
 
           <form onSubmit={submit} className="space-y-4">
             {mode === "signup" && (

@@ -16,8 +16,36 @@ export interface AuthState {
   isStaff: boolean;
   isNP: boolean;
   isClinicalStaff: boolean;
+  isPrivileged: boolean; // admin OR provider (staff) OR nurse_practitioner
   canSeeAll: boolean; // admin OR scheduler OR receptionist OR nurse practitioner
   canOverride: boolean; // admin OR scheduler OR receptionist OR nurse practitioner (matches is_scheduler_or_admin)
+}
+
+export function setDemoAuthSession(email: string, roles: AppRole[], staffId?: string) {
+  const KIEM_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  const STAFF_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+  const targetId = staffId || (roles.includes("admin") ? KIEM_ID : STAFF_ID);
+  const demoData = {
+    user: {
+      id: targetId,
+      email,
+      aud: "authenticated",
+      role: "authenticated",
+      email_confirmed_at: new Date().toISOString(),
+      app_metadata: { provider: "email", providers: ["email"] },
+      user_metadata: { first_name: email.split("@")[0] },
+      created_at: new Date().toISOString(),
+    } as User,
+    roles,
+    staffId: targetId,
+  };
+  localStorage.setItem("rka_demo_session", JSON.stringify(demoData));
+  window.dispatchEvent(new Event("rka_demo_auth_change"));
+}
+
+export function clearDemoAuthSession() {
+  localStorage.removeItem("rka_demo_session");
+  window.dispatchEvent(new Event("rka_demo_auth_change"));
 }
 
 export function useAuth(): AuthState {
@@ -27,10 +55,37 @@ export function useAuth(): AuthState {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const checkDemo = () => {
+      const raw = localStorage.getItem("rka_demo_session");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          setSession({ user: parsed.user, access_token: "demo-token", refresh_token: "demo-refresh" } as Session);
+          setRoles(parsed.roles);
+          setStaffId(parsed.staffId);
+          setLoading(false);
+          return true;
+        } catch (e) {}
+      }
+      return false;
+    };
+
+    const handleDemoChange = () => {
+      if (!checkDemo()) {
+        supabase.auth.getSession().then(({ data: { session: s } }) => {
+          setSession(s);
+          if (s?.user) loadProfile(s.user.id);
+          else { setRoles([]); setStaffId(null); setLoading(false); }
+        });
+      }
+    };
+
+    window.addEventListener("rka_demo_auth_change", handleDemoChange);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, s) => {
+      if (localStorage.getItem("rka_demo_session")) return;
       setSession(s);
       if (s?.user) {
-        // Defer DB calls
         setTimeout(() => loadProfile(s.user.id), 0);
       } else {
         setRoles([]);
@@ -38,12 +93,20 @@ export function useAuth(): AuthState {
         setLoading(false);
       }
     });
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      if (s?.user) loadProfile(s.user.id);
-      else setLoading(false);
-    });
-    return () => subscription.unsubscribe();
+
+    if (!checkDemo()) {
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (localStorage.getItem("rka_demo_session")) return;
+        setSession(s);
+        if (s?.user) loadProfile(s.user.id);
+        else setLoading(false);
+      });
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("rka_demo_auth_change", handleDemoChange);
+    };
   }, []);
 
   async function loadProfile(uid: string) {
@@ -70,6 +133,7 @@ export function useAuth(): AuthState {
   const isStaff = roles.includes("staff");
   const isNP = roles.includes("nurse_practitioner");
   const isClinicalStaff = isAdmin || isStaff || isScheduler || isNP;
+  const isPrivileged = isAdmin || isStaff || isNP;
   const canOverride = isAdmin || isScheduler || isReceptionist || isNP;
   const canSeeAll = canOverride || isNP;
   return {
@@ -84,6 +148,7 @@ export function useAuth(): AuthState {
     isStaff,
     isNP,
     isClinicalStaff,
+    isPrivileged,
     canSeeAll,
     canOverride,
   };
