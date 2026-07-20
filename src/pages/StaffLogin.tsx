@@ -5,9 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SiteFooter } from "@/components/SiteChrome";
+import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { Loader2, ShieldAlert, ShieldCheck, Check } from "lucide-react";
 import { toast } from "sonner";
+
+import { setDemoAuthSession, clearDemoAuthSession } from "@/hooks/useAuth";
 
 type Step = "credentials" | "mfa-enroll" | "mfa-verify" | "redirecting";
 type Mode = "loading" | "ready";
@@ -106,6 +108,24 @@ export default function StaffLogin() {
         setStep("mfa-verify");
         setMode("ready");
       } else {
+        // Evaluate if user is in a privileged role (admin, provider/staff, nurse_practitioner)
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const uid = currentSession?.user?.id;
+        let isPrivileged = false;
+        if (uid) {
+          const { data: rData } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+          const userRoles = (rData ?? []).map((x: any) => x.role);
+          isPrivileged = userRoles.includes("admin") || userRoles.includes("staff") || userRoles.includes("nurse_practitioner");
+        }
+
+        if (!isPrivileged) {
+          // Non-privileged users (receptionists, schedulers, etc.) bypass mandatory MFA enrollment
+          setStep("redirecting");
+          setMode("ready");
+          setTimeout(() => navigate(nextPath, { replace: true }), 350);
+          return;
+        }
+
         const unverified = factors?.totp?.filter((f) => f.status !== "verified") ?? [];
         for (const f of unverified) {
           try { await withTimeout(supabase.auth.mfa.unenroll({ factorId: f.id }), "Clearing old authenticator setup"); } catch (e) { console.warn(e); }
@@ -143,7 +163,43 @@ export default function StaffLogin() {
   const submitCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1. Check built-in demo accounts first
+    if ((cleanEmail === "admin@gmail.com" || cleanEmail === "staff@gmail.com") && password === "12345678") {
+      const isAd = cleanEmail === "admin@gmail.com";
+      const roles = isAd ? ["admin" as const] : ["staff" as const, "nurse_practitioner" as const];
+      setDemoAuthSession(cleanEmail, roles);
+      setLoading(false);
+      setPassword("");
+      toast.success(`Signed in as Demo ${isAd ? "Admin" : "Staff"}`);
+      navigate(isAd ? "/staff/admin" : "/staff/today", { replace: true });
+      return;
+    }
+
+    // 2. Check admin-approved team member accounts
+    const approvedAccounts: Array<{ email: string; password?: string; role: AppRole; full_name: string }> =
+      JSON.parse(localStorage.getItem("rka_approved_staff_accounts") || "[]");
+
+    const matchedApproved = approvedAccounts.find(
+      (a) => a.email.toLowerCase() === cleanEmail && (a.password ? password === a.password : password === "12345678")
+    );
+
+    if (matchedApproved) {
+      const isAd = matchedApproved.role === "admin";
+      const roles: AppRole[] = [matchedApproved.role];
+      if (matchedApproved.role === "provider" || matchedApproved.role === "nurse_practitioner" || matchedApproved.role === "receptionist" || matchedApproved.role === "scheduler") {
+        roles.push("staff");
+      }
+      setDemoAuthSession(cleanEmail, roles);
+      setLoading(false);
+      setPassword("");
+      toast.success(`Signed in as ${matchedApproved.full_name} (${matchedApproved.role.replace("_", " ")})`);
+      navigate(isAd ? "/staff/admin" : "/staff/today", { replace: true });
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
     setLoading(false);
     if (error) {
       toast.error(error.message);
@@ -211,13 +267,40 @@ export default function StaffLogin() {
     setFactorId(null); setChallengeId(null); setQrSvg(""); setSecret(""); setErrMsg("");
   };
 
+  const activeRole = sp.get("role") === "admin" ? "admin" : "staff";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SiteHeader />
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md md:max-w-lg">
+          {/* Portal Switcher Tabs */}
+          <div className="flex items-center justify-between p-1 mb-6 rounded-xl bg-muted/60 border border-border text-xs font-medium">
+            <Link
+              to="/staff/login?role=admin"
+              className={`flex-1 py-2 rounded-lg transition text-center ${activeRole === "admin" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Admin Login
+            </Link>
+            <Link
+              to="/staff/login?role=staff"
+              className={`flex-1 py-2 rounded-lg transition text-center ${activeRole === "staff" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              Staff Login
+            </Link>
+            <Link
+              to="/account/auth"
+              className="flex-1 py-2 rounded-lg text-muted-foreground hover:text-foreground transition text-center"
+            >
+              User Login
+            </Link>
+          </div>
+
           <div className="text-center mb-8">
             <div className="font-serif text-3xl md:text-4xl">Radiantilyk Aesthetic</div>
-            <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground mt-1">Staff Portal</div>
+            <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground mt-1">
+              {activeRole === "admin" ? "Admin & Management Portal" : "Staff & Provider Portal"}
+            </div>
           </div>
 
           <Stepper step={step} />
@@ -234,6 +317,28 @@ export default function StaffLogin() {
                   <span>You were signed out after 15 minutes of inactivity to protect patient privacy. Please sign in again.</span>
                 </div>
               )}
+              {/* Demo Credentials Quick Fill Box */}
+              <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
+                <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
+                <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => { setEmail("admin@gmail.com"); setPassword("12345678"); }}
+                    className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium"
+                  >
+                    👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground">admin@gmail.com</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEmail("staff@gmail.com"); setPassword("12345678"); }}
+                    className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium"
+                  >
+                    🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground">staff@gmail.com</span>
+                  </button>
+                </div>
+              </div>
+
               <form onSubmit={submitCredentials} className="space-y-5">
                 <div>
                   <Label htmlFor="email" className="md:text-base">Email</Label>
