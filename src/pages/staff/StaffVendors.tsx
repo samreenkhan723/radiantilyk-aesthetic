@@ -86,40 +86,29 @@ const emptyDevice = (): Partial<Device> => ({
 
 // ═══════════════════════════════════════════════════════════════════════════
 export default function StaffVendors() {
-  usePageMeta({ title: "Vendors & Device Inventory" });
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") === "devices" ? "devices" : "vendors";
 
-  function switchTab(tab: string) {
-    setSearchParams(tab === "devices" ? { tab: "devices" } : {});
-  }
+  usePageMeta({
+    title: activeTab === "devices" ? "Device Inventory" : "Vendor Management"
+  });
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
       <div className="border-b border-border pb-5">
-        <h1 className="font-serif text-3xl">Vendors & Device Inventory</h1>
+        <h1 className="font-serif text-3xl">
+          {activeTab === "devices" ? "Device Inventory" : "Vendor Management"}
+        </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Manage BAA-covered vendors and the clinic's IT hardware asset registry.
+          {activeTab === "devices"
+            ? "Track workstations, laptops, tablets, and other clinic IT hardware with encryption status for HIPAA compliance."
+            : "Every vendor that touches PHI must have a signed Business Associate Agreement (45 CFR §164.504(e))."}
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={switchTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="vendors" className="gap-2">
-            <Building2 className="h-4 w-4" /> Vendor Management
-          </TabsTrigger>
-          <TabsTrigger value="devices" className="gap-2">
-            <Laptop className="h-4 w-4" /> Device Inventory
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="vendors">
-          <VendorTab />
-        </TabsContent>
-        <TabsContent value="devices">
-          <DeviceTab />
-        </TabsContent>
-      </Tabs>
+      <div>
+        {activeTab === "devices" ? <DeviceTab /> : <VendorTab />}
+      </div>
     </div>
   );
 }

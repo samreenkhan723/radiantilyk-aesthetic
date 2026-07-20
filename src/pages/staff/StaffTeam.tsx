@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Loader2, Mail, CheckCircle2, Plus, MoreHorizontal, UserX, UserCheck, Trash2, DollarSign, ShieldCheck, Lock, KeyRound, AlertCircle, XCircle } from "lucide-react";
+import { Loader2, Mail, CheckCircle2, Plus, MoreHorizontal, UserX, UserCheck, Trash2, DollarSign, ShieldCheck, Lock, KeyRound, AlertCircle, XCircle, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -60,7 +60,20 @@ export default function StaffTeam() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [addBusy, setAddBusy] = useState(false);
-  const [draft, setDraft] = useState({ full_name: "", title: "", email: "", color: PALETTE[0], role: "staff" as Role, sendInvite: true });
+  const [draft, setDraft] = useState({ id: "" as string | null, full_name: "", title: "", email: "", color: PALETTE[0], role: "staff" as Role, sendInvite: true });
+
+  const openEdit = (m: Member, primaryRole: Role) => {
+    setDraft({
+      id: m.id,
+      full_name: m.full_name || "",
+      title: m.title || "",
+      email: m.email || "",
+      color: m.color || PALETTE[0],
+      role: primaryRole,
+      sendInvite: false
+    });
+    setAddOpen(true);
+  };
 
   const load = async () => {
     setLoading(true);
@@ -165,25 +178,92 @@ export default function StaffTeam() {
     }
     setAddBusy(true);
 
-    const newReq: PendingRequest = {
-      id: `req-${Date.now()}`,
-      full_name: draft.full_name.trim(),
-      title: draft.title.trim(),
-      email: draft.email.trim().toLowerCase(),
-      role: draft.role,
-      color: draft.color,
-      created_at: new Date().toISOString(),
-      password: "12345678",
-    };
+    const email = draft.email.trim().toLowerCase();
+    const password = "12345678";
 
-    const existingReqs: PendingRequest[] = JSON.parse(localStorage.getItem("rka_pending_member_requests") || "[]");
-    existingReqs.push(newReq);
-    localStorage.setItem("rka_pending_member_requests", JSON.stringify(existingReqs));
+    if (draft.id) {
+      // EDIT MODE
+      // Update approved login accounts
+      const approvedAccounts: any[] = JSON.parse(localStorage.getItem("rka_approved_staff_accounts") || "[]");
+      const originalMember = members.find(m => m.id === draft.id);
+      const updatedAccounts = approvedAccounts.map(acc => {
+        if (acc.email === originalMember?.email) {
+          return {
+            ...acc,
+            email,
+            role: draft.role,
+            full_name: draft.full_name.trim(),
+          };
+        }
+        return acc;
+      });
+      localStorage.setItem("rka_approved_staff_accounts", JSON.stringify(updatedAccounts));
 
-    toast.success(`Member ${draft.full_name} created! Status: Pending Admin Approval.`);
+      // Update active team list
+      const existingTeam: Member[] = JSON.parse(localStorage.getItem("rka_demo_team_members") || "[]");
+      const updatedTeam = existingTeam.map(m => {
+        if (m.id === draft.id) {
+          return {
+            ...m,
+            full_name: draft.full_name.trim(),
+            title: draft.title.trim(),
+            email,
+            color: draft.color,
+          };
+        }
+        return m;
+      });
+      localStorage.setItem("rka_demo_team_members", JSON.stringify(updatedTeam));
+
+      // Update in database if it exists there
+      if (originalMember?.user_id) {
+        try {
+          await supabase.from("staff_profiles").update({
+            full_name: draft.full_name.trim(),
+            title: draft.title.trim(),
+            email,
+            color: draft.color,
+          }).eq("id", draft.id);
+        } catch (e) {}
+      }
+
+      toast.success(`Member ${draft.full_name} updated successfully!`);
+    } else {
+      // ADD MODE
+      // Add directly to approved login accounts
+      const approvedAccounts: any[] = JSON.parse(localStorage.getItem("rka_approved_staff_accounts") || "[]");
+      approvedAccounts.push({
+        email,
+        password,
+        role: draft.role,
+        full_name: draft.full_name.trim(),
+      });
+      localStorage.setItem("rka_approved_staff_accounts", JSON.stringify(approvedAccounts));
+
+      // Add directly to active team list
+      const newMember: Member = {
+        id: `approved-${Date.now()}`,
+        full_name: draft.full_name.trim(),
+        title: draft.title.trim(),
+        email,
+        user_id: `user-${Date.now()}`,
+        is_active: true,
+        is_owner: false,
+        color: draft.color,
+        hourly_rate_cents: null,
+        commission_percent: null,
+      };
+
+      const existingTeam: Member[] = JSON.parse(localStorage.getItem("rka_demo_team_members") || "[]");
+      existingTeam.push(newMember);
+      localStorage.setItem("rka_demo_team_members", JSON.stringify(existingTeam));
+
+      toast.success(`Member ${draft.full_name} created and approved! Login credentials: Email: ${email} | Password: ${password}`);
+    }
+
     setAddBusy(false);
     setAddOpen(false);
-    setDraft({ full_name: "", title: "", email: "", color: PALETTE[0], role: "staff", sendInvite: true });
+    setDraft({ id: "", full_name: "", title: "", email: "", color: PALETTE[0], role: "staff", sendInvite: true });
     load();
   };
 
@@ -279,6 +359,27 @@ export default function StaffTeam() {
     const pct = payDraft.pct.trim() === "" ? null : parseFloat(payDraft.pct);
     if (rate !== null && (isNaN(rate) || rate < 0)) { setPaySaving(false); return toast.error("Invalid rate"); }
     if (pct !== null && (isNaN(pct) || pct < 0 || pct > 100)) { setPaySaving(false); return toast.error("Commission must be 0–100"); }
+
+    if (payEditing.id.startsWith("approved-") || payEditing.id.startsWith("req-")) {
+      const localTeam: Member[] = JSON.parse(localStorage.getItem("rka_demo_team_members") || "[]");
+      const updatedTeam = localTeam.map(m => {
+        if (m.id === payEditing.id) {
+          return {
+            ...m,
+            hourly_rate_cents: rate,
+            commission_percent: pct,
+          };
+        }
+        return m;
+      });
+      localStorage.setItem("rka_demo_team_members", JSON.stringify(updatedTeam));
+      setPaySaving(false);
+      toast.success(`Saved pay settings for ${payEditing.full_name}`);
+      setPayEditing(null);
+      load();
+      return;
+    }
+
     const { error } = await (supabase as any).from("staff_pay_config").upsert({
       staff_id: payEditing.id,
       hourly_rate_cents: rate,
@@ -553,8 +654,15 @@ export default function StaffTeam() {
                   <div className="min-w-0">
                     <div className="font-medium truncate">{m.full_name}</div>
                     <div className="text-xs text-muted-foreground truncate">{m.title} · {m.email || "no email"}</div>
-                    <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-1.5">
+                    <div className="text-[10px] text-muted-foreground mt-1 flex flex-wrap gap-1.5 items-center">
                       {m.is_owner && <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary font-semibold">Owner</span>}
+                      {(m.hourly_rate_cents != null || m.commission_percent != null) && (
+                        <span className="px-1.5 py-0.5 rounded bg-secondary/60 text-secondary-foreground border border-border/40 font-medium">
+                          Pay: {m.hourly_rate_cents != null ? `$${(m.hourly_rate_cents / 100).toFixed(0)}/hr` : ""}
+                          {m.hourly_rate_cents != null && m.commission_percent != null ? " + " : ""}
+                          {m.commission_percent != null ? `${m.commission_percent}% commission` : ""}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -564,47 +672,18 @@ export default function StaffTeam() {
                     {primaryRole.replace("_", " ")}
                   </Badge>
 
-                  {m.is_pending ? (
-                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs px-3 py-1.5 font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                      <AlertCircle className="h-3.5 w-3.5" /> Pending
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs px-3 py-1.5 font-semibold flex items-center gap-1.5 whitespace-nowrap">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Approved
-                    </Badge>
-                  )}
-
                   {!m.is_owner && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" disabled={busy === m.id}>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openPay(m)}>
-                          <DollarSign className="h-3.5 w-3.5 mr-2" />Set pay
-                          {(m.hourly_rate_cents || m.commission_percent) && (
-                            <span className="ml-auto text-[10px] text-muted-foreground">
-                              {m.hourly_rate_cents ? `$${(m.hourly_rate_cents/100).toFixed(0)}/hr` : ""}
-                              {m.hourly_rate_cents && m.commission_percent ? " · " : ""}
-                              {m.commission_percent ? `${m.commission_percent}%` : ""}
-                            </span>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => toggleActive(m)}>
-                          {m.is_active ? (
-                            <><UserX className="h-3.5 w-3.5 mr-2" />Deactivate</>
-                          ) : (
-                            <><UserCheck className="h-3.5 w-3.5 mr-2" />Reactivate</>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => setConfirmDelete(m)} className="text-destructive focus:text-destructive">
-                          <Trash2 className="h-3.5 w-3.5 mr-2" />Delete permanently
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center gap-1">
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(m, primaryRole)} className="h-8 w-8 rounded-full" title="Edit Profile Details">
+                        <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => openPay(m)} className="h-8 w-8 rounded-full" title="Edit Pay / Commission">
+                        <DollarSign className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => setConfirmDelete(m)} className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/10" title="Delete permanently">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -616,8 +695,10 @@ export default function StaffTeam() {
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add team member</DialogTitle>
-            <DialogDescription>Create a profile and submit an activation request for Admin approval.</DialogDescription>
+            <DialogTitle>{draft.id ? "Edit team member" : "Add team member"}</DialogTitle>
+            <DialogDescription>
+              {draft.id ? "Update the profile details, role, and calendar color." : "Create a profile and submit an activation request for Admin approval."}
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-3">
@@ -665,7 +746,7 @@ export default function StaffTeam() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setAddOpen(false)} disabled={addBusy}>Cancel</Button>
             <Button onClick={addMember} disabled={addBusy}>
-              {addBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Request"}
+              {addBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : (draft.id ? "Save Changes" : "Create Member")}
             </Button>
           </DialogFooter>
         </DialogContent>
