@@ -38,13 +38,12 @@ interface Group {
 }
 
 export default function StaffLayout() {
-  const { user, loading, role, roles, isOwner, isAdmin, isNP, isStaff, isReceptionist, isScheduler } = useAuth();
+  const { user, loading, roles, isAdmin, isNP, isStaff, isReceptionist, isScheduler, isPrivileged } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  // Privileged roles requiring MFA (aal2)
-  const isPrivileged = isOwner || isAdmin || isNP || role === "provider" || roles.includes("provider");
+  // Privileged roles requiring MFA (aal2) — isPrivileged comes from useAuth
   const [mfaOk, setMfaOk] = useState(true);
   const [mfaChecked, setMfaChecked] = useState(false);
 
