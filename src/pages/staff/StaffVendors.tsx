@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Pencil } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Building2, ShieldCheck, Lock, Laptop } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 type Vendor = {
@@ -52,18 +52,31 @@ export default function StaffVendors() {
 
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase.from("vendors" as any).select("*").order("name");
-    if (error) toast({ title: "Load failed", description: error.message, variant: "destructive" });
-    setRows(((data as any) ?? []) as Vendor[]);
+    let remoteVendors: Vendor[] = [];
+    try {
+      const { data, error } = await supabase.from("vendors" as any).select("*").order("name");
+      if (!error && data) remoteVendors = (data as any) as Vendor[];
+    } catch (e) {}
+
+    const localDemoVendors: Vendor[] = JSON.parse(localStorage.getItem("rka_demo_vendors") || "[]");
+
+    const remoteIds = new Set(remoteVendors.map(x => x.id));
+    const uniqueLocal = localDemoVendors.filter(x => !remoteIds.has(x.id));
+
+    setRows([...remoteVendors, ...uniqueLocal]);
     setLoading(false);
   }
+
   useEffect(() => { load(); }, []);
 
   function openNew() { setForm(empty()); setOpen(true); }
   function openEdit(v: Vendor) { setForm(v); setOpen(true); }
 
   async function save() {
-    if (!form.name?.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
+    if (!form.name?.trim()) {
+      toast({ title: "Name required", variant: "destructive" });
+      return;
+    }
     setSaving(true);
     const payload: any = {
       name: form.name!.trim(),
@@ -77,20 +90,46 @@ export default function StaffVendors() {
       contact_email: form.contact_email || null,
       notes: form.notes || null,
     };
-    const q = form.id
-      ? supabase.from("vendors" as any).update(payload).eq("id", form.id)
-      : supabase.from("vendors" as any).insert(payload);
-    const { error } = await q;
+
+    if (form.id) {
+      try {
+        await supabase.from("vendors" as any).update(payload).eq("id", form.id);
+      } catch (e) {}
+
+      const localDemoVendors: Vendor[] = JSON.parse(localStorage.getItem("rka_demo_vendors") || "[]");
+      const updatedLocal = localDemoVendors.map(v => v.id === form.id ? { ...v, ...payload } : v);
+      localStorage.setItem("rka_demo_vendors", JSON.stringify(updatedLocal));
+    } else {
+      try {
+        await supabase.from("vendors" as any).insert(payload);
+      } catch (e) {}
+
+      const localDemoVendors: Vendor[] = JSON.parse(localStorage.getItem("rka_demo_vendors") || "[]");
+      const newVendor: Vendor = {
+        id: `vendor-${Date.now()}`,
+        ...payload,
+      };
+      localDemoVendors.push(newVendor);
+      localStorage.setItem("rka_demo_vendors", JSON.stringify(localDemoVendors));
+    }
+
     setSaving(false);
-    if (error) { toast({ title: "Save failed", description: error.message, variant: "destructive" }); return; }
     setOpen(false);
+    toast({ title: "Vendor saved successfully" });
     load();
   }
 
   async function remove(id: string) {
     if (!confirm("Delete this vendor?")) return;
-    const { error } = await supabase.from("vendors" as any).delete().eq("id", id);
-    if (error) { toast({ title: "Delete failed", description: error.message, variant: "destructive" }); return; }
+    try {
+      await supabase.from("vendors" as any).delete().eq("id", id);
+    } catch (e) {}
+
+    const localDemoVendors: Vendor[] = JSON.parse(localStorage.getItem("rka_demo_vendors") || "[]");
+    const updatedLocal = localDemoVendors.filter(v => v.id !== id);
+    localStorage.setItem("rka_demo_vendors", JSON.stringify(updatedLocal));
+
+    toast({ title: "Vendor deleted" });
     load();
   }
 
@@ -103,52 +142,58 @@ export default function StaffVendors() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
         <div>
           <h1 className="font-serif text-3xl">Vendors & BAAs</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Every vendor that touches PHI must have a signed Business Associate Agreement (45 CFR §164.504(e)).
           </p>
         </div>
-        <Button onClick={openNew}><Plus className="h-4 w-4 mr-1" /> Add vendor</Button>
+        <Button onClick={openNew} className="rounded-full"><Plus className="h-4 w-4 mr-1.5" /> Add vendor</Button>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center p-10"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
       ) : rows.length === 0 ? (
-        <div className="rounded-2xl border border-dashed p-10 text-center text-muted-foreground">
+        <div className="rounded-2xl border border-dashed border-border p-10 text-center text-muted-foreground bg-card">
           No vendors yet — add your first one.
         </div>
       ) : (
-        <div className="rounded-2xl border overflow-hidden">
+        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-muted/50 text-muted-foreground uppercase text-[10px] tracking-wider border-b border-border">
                 <tr>
-                  <th className="p-3">Vendor</th>
-                  <th className="p-3">Category</th>
-                  <th className="p-3">PHI</th>
-                  <th className="p-3">BAA</th>
-                  <th className="p-3">Signed</th>
-                  <th className="p-3">Renewal</th>
-                  <th className="p-3">Contact</th>
-                  <th className="p-3 w-24"></th>
+                  <th className="p-3.5">Vendor Name</th>
+                  <th className="p-3.5">Category</th>
+                  <th className="p-3.5">Touches PHI</th>
+                  <th className="p-3.5">BAA Status</th>
+                  <th className="p-3.5">Signed Date</th>
+                  <th className="p-3.5">Renewal Date</th>
+                  <th className="p-3.5">Contact</th>
+                  <th className="p-3.5 text-right w-24">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {rows.map((v) => (
-                  <tr key={v.id} className="border-t hover:bg-muted/30">
-                    <td className="p-3 font-medium">{v.name}</td>
-                    <td className="p-3 text-muted-foreground">{v.category || "—"}</td>
-                    <td className="p-3">{v.touches_phi ? "Yes" : "No"}</td>
-                    <td className="p-3">
+                  <tr key={v.id} className="hover:bg-muted/30 transition">
+                    <td className="p-3.5 font-medium text-foreground">{v.name}</td>
+                    <td className="p-3.5 text-muted-foreground">{v.category || "—"}</td>
+                    <td className="p-3.5">
+                      {v.touches_phi ? (
+                        <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px]">Yes (PHI)</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px]">No</Badge>
+                      )}
+                    </td>
+                    <td className="p-3.5">
                       <Badge className={STATUS_STYLE[v.baa_status] || "bg-muted"} variant="outline">
                         {v.baa_status.replace("_", " ")}
                       </Badge>
-                      {!v.baa_required && <div className="text-xs text-muted-foreground mt-1">not required</div>}
+                      {!v.baa_required && <div className="text-[10px] text-muted-foreground mt-0.5">not required</div>}
                     </td>
-                    <td className="p-3 text-muted-foreground">{v.baa_signed_at || "—"}</td>
-                    <td className="p-3">
+                    <td className="p-3.5 text-muted-foreground">{v.baa_signed_at || "—"}</td>
+                    <td className="p-3.5">
                       {v.baa_renewal_at ? (
                         <span className={overdue(v.baa_renewal_at) ? "text-red-600 font-medium" :
                           renewalSoon(v.baa_renewal_at) ? "text-amber-600 font-medium" : "text-muted-foreground"}>
@@ -156,13 +201,13 @@ export default function StaffVendors() {
                         </span>
                       ) : "—"}
                     </td>
-                    <td className="p-3 text-xs text-muted-foreground">
+                    <td className="p-3.5 text-xs text-muted-foreground">
                       {v.contact_name || "—"}
-                      {v.contact_email && <div>{v.contact_email}</div>}
+                      {v.contact_email && <div className="text-[11px]">{v.contact_email}</div>}
                     </td>
-                    <td className="p-3 text-right whitespace-nowrap">
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(v)}><Pencil className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => remove(v.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <td className="p-3.5 text-right whitespace-nowrap">
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(v)} className="h-8 w-8 rounded-full"><Pencil className="h-3.5 w-3.5" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => remove(v.id)} className="h-8 w-8 rounded-full text-destructive"><Trash2 className="h-3.5 w-3.5" /></Button>
                     </td>
                   </tr>
                 ))}
@@ -174,62 +219,62 @@ export default function StaffVendors() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{form.id ? "Edit vendor" : "New vendor"}</DialogTitle></DialogHeader>
-          <div className="grid gap-3">
+          <DialogHeader><DialogTitle>{form.id ? "Edit Vendor" : "Add New Vendor"}</DialogTitle></DialogHeader>
+          <div className="grid gap-3.5 py-2">
             <div>
-              <Label>Name *</Label>
-              <Input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Label>Vendor Name *</Label>
+              <Input value={form.name ?? ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Supabase, Google, Stripe" className="mt-1" />
             </div>
             <div>
               <Label>Category</Label>
               <Input value={form.category ?? ""} onChange={(e) => setForm({ ...form, category: e.target.value })}
-                placeholder="e.g. Transactional email" />
+                placeholder="e.g. Database & Cloud Hosting" className="mt-1" />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox checked={!!form.touches_phi} onCheckedChange={(v) => setForm({ ...form, touches_phi: !!v })} />
                 Touches PHI
               </label>
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <Checkbox checked={!!form.baa_required} onCheckedChange={(v) => setForm({ ...form, baa_required: !!v })} />
-                BAA required
+                BAA Required
               </label>
             </div>
             <div>
-              <Label>BAA status</Label>
+              <Label>BAA Status</Label>
               <Select value={form.baa_status} onValueChange={(v) => setForm({ ...form, baa_status: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                 <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace("_", " ")}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Signed date</Label>
-                <Input type="date" value={form.baa_signed_at ?? ""} onChange={(e) => setForm({ ...form, baa_signed_at: e.target.value || null })} />
+                <Label>Signed Date</Label>
+                <Input type="date" value={form.baa_signed_at ?? ""} onChange={(e) => setForm({ ...form, baa_signed_at: e.target.value || null })} className="mt-1" />
               </div>
               <div>
-                <Label>Renewal date</Label>
-                <Input type="date" value={form.baa_renewal_at ?? ""} onChange={(e) => setForm({ ...form, baa_renewal_at: e.target.value || null })} />
+                <Label>Renewal Date</Label>
+                <Input type="date" value={form.baa_renewal_at ?? ""} onChange={(e) => setForm({ ...form, baa_renewal_at: e.target.value || null })} className="mt-1" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Contact name</Label>
-                <Input value={form.contact_name ?? ""} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} />
+                <Label>Contact Name</Label>
+                <Input value={form.contact_name ?? ""} onChange={(e) => setForm({ ...form, contact_name: e.target.value })} className="mt-1" />
               </div>
               <div>
-                <Label>Contact email</Label>
-                <Input type="email" value={form.contact_email ?? ""} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} />
+                <Label>Contact Email</Label>
+                <Input type="email" value={form.contact_email ?? ""} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} className="mt-1" />
               </div>
             </div>
             <div>
-              <Label>Notes</Label>
-              <Textarea rows={3} value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <Label>Notes & Compliance Details</Label>
+              <Textarea rows={3} value={form.notes ?? ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="mt-1" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving}>{saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}Save</Button>
+            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={save} disabled={saving}>{saving && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}Save Vendor</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

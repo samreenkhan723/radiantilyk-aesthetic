@@ -86,7 +86,7 @@ const Book = () => {
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   const [client, setClient] = useState({
-    firstName: "", lastName: "", email: "", phone: "", dob: "", notes: "", smsOptIn: false, nppAck: false,
+    firstName: "", lastName: "", email: "", phone: "", dob: "", notes: "", smsOptIn: false, marketingOptIn: false, nppAck: false,
   });
 
 
@@ -456,6 +456,7 @@ const Book = () => {
           email: client.email, phone: client.phone,
           dob: client.dob || undefined, notes: client.notes || undefined,
           smsOptIn: !!client.smsOptIn,
+          marketingOptIn: !!client.marketingOptIn,
         },
         stripeCustomerId: card.customerId,
         stripePaymentMethodId: card.paymentMethodId,
