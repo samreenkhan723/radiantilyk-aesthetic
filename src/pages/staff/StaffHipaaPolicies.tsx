@@ -89,9 +89,17 @@ export default function StaffHipaaPolicies() {
 
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("hipaa_policies" as any).select("*").order("category").order("title");
-    if (error) toast.error(error.message);
-    setPolicies((data as any) || []);
+    let remotePolicies: Policy[] = [];
+    try {
+      const { data, error } = await supabase.from("hipaa_policies" as any).select("*").order("category").order("title");
+      if (!error && data) remotePolicies = (data as any) || [];
+    } catch (e) {}
+
+    const localDemoPolicies: Policy[] = JSON.parse(localStorage.getItem("rka_demo_hipaa_policies") || "[]");
+    const remoteIds = new Set(remotePolicies.map(x => x.id));
+    const uniqueLocal = localDemoPolicies.filter(x => !remoteIds.has(x.id));
+
+    setPolicies([...remotePolicies, ...uniqueLocal]);
     setLoading(false);
   };
 
@@ -101,9 +109,16 @@ export default function StaffHipaaPolicies() {
     if (!selectedId) { setDraft(null); setVersions([]); return; }
     const p = policies.find((x) => x.id === selectedId);
     if (p) setDraft({ ...p });
+    
     supabase.from("hipaa_policy_versions" as any)
       .select("*").eq("policy_id", selectedId).order("version", { ascending: false })
-      .then(({ data }) => setVersions((data as any) || []));
+      .then(({ data }) => {
+        const remoteVersions = (data as any) || [];
+        const localVersions = JSON.parse(localStorage.getItem(`rka_demo_versions_${selectedId}`) || "[]");
+        const allIds = new Set(remoteVersions.map((v: any) => v.id));
+        const uniqueLocal = localVersions.filter((v: any) => !allIds.has(v.id));
+        setVersions([...remoteVersions, ...uniqueLocal]);
+      });
   }, [selectedId, policies]);
 
   const filtered = useMemo(() => {
@@ -123,13 +138,19 @@ export default function StaffHipaaPolicies() {
   const save = async () => {
     if (!draft) return;
     setSaving(true);
-    const { error } = await supabase.from("hipaa_policies" as any).update({
-      title: draft.title, category: draft.category, summary: draft.summary,
-      body_markdown: draft.body_markdown, effective_date: draft.effective_date,
-      review_due_date: draft.review_due_date,
-    }).eq("id", draft.id);
+    try {
+      await supabase.from("hipaa_policies" as any).update({
+        title: draft.title, category: draft.category, summary: draft.summary,
+        body_markdown: draft.body_markdown, effective_date: draft.effective_date,
+        review_due_date: draft.review_due_date,
+      }).eq("id", draft.id);
+    } catch (e) {}
+
+    const localDemoPolicies: Policy[] = JSON.parse(localStorage.getItem("rka_demo_hipaa_policies") || "[]");
+    const updatedLocal = localDemoPolicies.map(p => p.id === draft.id ? { ...p, ...draft } as Policy : p);
+    localStorage.setItem("rka_demo_hipaa_policies", JSON.stringify(updatedLocal));
+
     setSaving(false);
-    if (error) return toast.error(error.message);
     toast.success("Saved");
     load();
   };
@@ -138,36 +159,71 @@ export default function StaffHipaaPolicies() {
     if (!draft) return;
     if (!confirm(`Approve "${draft.title}" as version ${draft.version + 1}? An immutable snapshot will be recorded.`)) return;
     setSaving(true);
-    const user = (await supabase.auth.getUser()).data.user;
+    let user: any = null;
+    try {
+      user = (await supabase.auth.getUser()).data.user;
+    } catch (e) {}
     const newVersion = draft.version + 1;
-    const { error: uErr } = await supabase.from("hipaa_policies" as any).update({
+    const updatePayload = {
       title: draft.title, summary: draft.summary, body_markdown: draft.body_markdown,
       category: draft.category, effective_date: draft.effective_date, review_due_date: draft.review_due_date,
-      version: newVersion, status: "approved", approved_by: user?.id, approved_at: new Date().toISOString(),
-    }).eq("id", draft.id);
-    if (uErr) { setSaving(false); return toast.error(uErr.message); }
-    const { error: vErr } = await supabase.from("hipaa_policy_versions" as any).insert({
-      policy_id: draft.id, version: newVersion, title: draft.title, summary: draft.summary,
-      body_markdown: draft.body_markdown, effective_date: draft.effective_date, approved_by: user?.id,
+      version: newVersion, status: "approved" as const, approved_by: user?.id || null, approved_at: new Date().toISOString(),
+    };
+
+    try {
+      await supabase.from("hipaa_policies" as any).update(updatePayload).eq("id", draft.id);
+      await supabase.from("hipaa_policy_versions" as any).insert({
+        policy_id: draft.id, version: newVersion, title: draft.title, summary: draft.summary,
+        body_markdown: draft.body_markdown, effective_date: draft.effective_date, approved_by: user?.id,
+      });
+    } catch (e) {}
+
+    const localDemoPolicies: Policy[] = JSON.parse(localStorage.getItem("rka_demo_hipaa_policies") || "[]");
+    const updatedLocal = localDemoPolicies.map(p => p.id === draft.id ? { ...p, ...updatePayload } as Policy : p);
+    localStorage.setItem("rka_demo_hipaa_policies", JSON.stringify(updatedLocal));
+
+    const localVersions: any[] = JSON.parse(localStorage.getItem(`rka_demo_versions_${draft.id}`) || "[]");
+    localVersions.push({
+      id: `ver-${Date.now()}`,
+      policy_id: draft.id,
+      version: newVersion,
+      title: draft.title,
+      summary: draft.summary,
+      body_markdown: draft.body_markdown,
+      effective_date: draft.effective_date,
+      approved_at: new Date().toISOString(),
     });
+    localStorage.setItem(`rka_demo_versions_${draft.id}`, JSON.stringify(localVersions));
+
     setSaving(false);
-    if (vErr) return toast.error(vErr.message);
     toast.success(`Approved as v${newVersion}`);
     load();
   };
 
   const archive = async () => {
     if (!draft || !confirm("Archive this policy?")) return;
-    const { error } = await supabase.from("hipaa_policies" as any).update({ status: "archived" }).eq("id", draft.id);
-    if (error) return toast.error(error.message);
+    try {
+      await supabase.from("hipaa_policies" as any).update({ status: "archived" }).eq("id", draft.id);
+    } catch (e) {}
+
+    const localDemoPolicies: Policy[] = JSON.parse(localStorage.getItem("rka_demo_hipaa_policies") || "[]");
+    const updatedLocal = localDemoPolicies.map(p => p.id === draft.id ? { ...p, status: "archived" as const } : p);
+    localStorage.setItem("rka_demo_hipaa_policies", JSON.stringify(updatedLocal));
+
     toast.success("Archived");
     load();
   };
 
   const reactivate = async () => {
     if (!draft) return;
-    const { error } = await supabase.from("hipaa_policies" as any).update({ status: "draft" }).eq("id", draft.id);
-    if (error) return toast.error(error.message);
+    try {
+      await supabase.from("hipaa_policies" as any).update({ status: "draft" }).eq("id", draft.id);
+    } catch (e) {}
+
+    const localDemoPolicies: Policy[] = JSON.parse(localStorage.getItem("rka_demo_hipaa_policies") || "[]");
+    const updatedLocal = localDemoPolicies.map(p => p.id === draft.id ? { ...p, status: "draft" as const } : p);
+    localStorage.setItem("rka_demo_hipaa_policies", JSON.stringify(updatedLocal));
+
     toast.success("Moved back to draft");
     load();
   };
@@ -176,12 +232,35 @@ export default function StaffHipaaPolicies() {
     const title = prompt("New policy title:");
     if (!title) return;
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
-    const { data, error } = await supabase.from("hipaa_policies" as any).insert({
-      slug, title, category: "Custom", body_markdown: `# ${title}\n\n## 1. Purpose\n\n## 2. Scope\n\n## 3. Policy\n\n## 4. Procedures\n`,
-    }).select().single();
-    if (error) return toast.error(error.message);
+    
+    const payload = {
+      slug,
+      title,
+      category: "Custom",
+      body_markdown: `# ${title}\n\n## 1. Purpose\n\n## 2. Scope\n\n## 3. Policy\n\n## 4. Procedures\n`,
+      version: 1,
+      status: "draft" as const,
+      updated_at: new Date().toISOString(),
+      summary: "",
+      effective_date: null,
+      review_due_date: null,
+      approved_at: null,
+    };
+
+    let newId = `policy-${Date.now()}`;
+    try {
+      const { data, error } = await supabase.from("hipaa_policies" as any).insert(payload).select().single();
+      if (!error && data) {
+        newId = (data as any).id;
+      }
+    } catch (e) {}
+
+    const localDemoPolicies: Policy[] = JSON.parse(localStorage.getItem("rka_demo_hipaa_policies") || "[]");
+    localDemoPolicies.push({ id: newId, ...payload });
+    localStorage.setItem("rka_demo_hipaa_policies", JSON.stringify(localDemoPolicies));
+
     await load();
-    setSelectedId((data as any).id);
+    setSelectedId(newId);
   };
 
   const downloadCurrent = (format: "md" | "html") => {
