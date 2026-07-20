@@ -1,52 +1,59 @@
-import { Link, NavLink, useNavigate, Outlet, Navigate, useLocation } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
-import { useAuth, clearDemoAuthSession } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  Loader2, Calendar as CalIcon, Clock, Users, LogOut, FileText, UserCircle2, Menu, X,
-  DollarSign, Inbox, BarChart3, History, Megaphone, Smartphone, Sun, BookOpen, CreditCard,
-  ChevronDown, ChevronRight, Stethoscope, MessageSquare, Boxes, Package, Star, AlertTriangle,
-  Settings, ShieldCheck, ShieldAlert, Zap, LayoutDashboard, Shield, Lock, KeyRound,
-  FileCheck, FileCode, Laptop, Building2, Eye, HardDrive, Activity
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { CommandPalette } from "@/components/CommandPalette";
-import { KeyboardShortcutsHelp } from "@/components/staff/KeyboardShortcutsHelp";
+import { useMemo, useState, useEffect } from "react";
+import { Link, NavLink, Outlet, useLocation, useNavigate, Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { usePendingBookings } from "@/hooks/usePendingBookings";
-import { ClockInOutButton } from "@/components/staff/ClockInOutButton";
-import { useIdleLogout } from "@/hooks/useIdleLogout";
-import { StaffBottomNav } from "@/components/staff/StaffBottomNav";
+import { supabase } from "@/integrations/supabase/client";
+import { clearDemoAuthSession } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Menu, Sun, Inbox, MessageSquare, Calendar as CalIcon, Clock, CreditCard,
+  Stethoscope, ShieldCheck, ShieldAlert, Boxes, UserCircle2, Star, Users,
+  BookOpen, Lock, History, Laptop, Building2, ChevronDown, ChevronRight, LogOut, Loader2
+} from "lucide-react";
 import rkaLogo from "@/assets/rka-logo.webp";
 
-type SubLink = { to: string; label: string; icon: any; show?: boolean; badge?: number };
-type Group = { key: string; label: string; icon: any; show: boolean; badge?: number; children: SubLink[] };
+interface NavItem {
+  to: string;
+  label: string;
+  icon: any;
+  badge?: number;
+  show?: boolean;
+}
+
+interface Group {
+  key: string;
+  label: string;
+  icon: any;
+  children: NavItem[];
+  badge?: number;
+  show?: boolean;
+}
 
 export default function StaffLayout() {
-  const navigate = useNavigate();
+  const { user, loading, role, roles, isOwner, isAdmin, isNP, isStaff, isReceptionist, isScheduler } = useAuth();
   const location = useLocation();
-  const { user, loading, isAdmin, isScheduler, isReceptionist, isStaff, isNP, isPrivileged, staffId } = useAuth();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [mfaChecked, setMfaChecked] = useState(false);
-  const [mfaOk, setMfaOk] = useState(false);
 
-  useIdleLogout(!!user);
-  useEffect(() => { setOpen(false); }, [location.pathname]);
+  // Privileged roles requiring MFA (aal2)
+  const isPrivileged = isOwner || isAdmin || isNP || role === "provider" || roles.includes("provider");
+  const [mfaOk, setMfaOk] = useState(true);
+  const [mfaChecked, setMfaChecked] = useState(false);
 
   useEffect(() => {
-    if (!user) { setMfaChecked(false); return; }
+    if (!user) { setMfaChecked(true); return; }
     let cancelled = false;
     (async () => {
-      if (localStorage.getItem("rka_demo_session")) {
-        setMfaOk(true);
-        setMfaChecked(true);
-        return;
-      }
       try {
-        const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (cancelled) return;
-        setMfaOk(data?.currentLevel === "aal2");
-      } catch (e) {
-        if (cancelled) return;
+        const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (error) { setMfaOk(true); return; }
+        if (data.currentLevel !== "aal2" && data.nextLevel === "aal2") {
+          setMfaOk(false);
+        } else {
+          setMfaOk(true);
+        }
+      } catch {
         setMfaOk(true);
       } finally {
         if (!cancelled) setMfaChecked(true);
@@ -76,130 +83,22 @@ export default function StaffLayout() {
     return () => { supabase.removeChannel(ch); };
   }, [user]);
 
-  // Enterprise Healthcare & HIPAA Compliance navigation structure for Admin
-  // Single "Staff Management" module under User & Role Management
-  const adminGroups: Group[] = useMemo(() => [
-    {
-      key: "admin-users",
-      label: "User & Role Management",
-      icon: Users,
-      show: true,
-      children: [
-        { to: "/staff/team", label: "Staff Management", icon: Users },
-        { to: "/staff/clients", label: "Patients", icon: UserCircle2 },
-        { to: "/staff/team?tab=roles", label: "Role & Permissions", icon: Lock },
-        { to: "/staff/team?tab=mfa", label: "MFA Status", icon: KeyRound },
-      ],
-    },
-    {
-      key: "admin-intake",
-      label: "Patient Intake",
-      icon: FileText,
-      show: true,
-      children: [
-        { to: "/staff/intake-status", label: "Intake Completion Status", icon: FileText },
-        { to: "/staff/intake-status?tab=npp", label: "Notice of Privacy Practices (NPP)", icon: BookOpen },
-        { to: "/staff/intake-status?tab=marketing", label: "Marketing Consents", icon: FileCheck },
-      ],
-    },
-    {
-      key: "admin-clinical-templates",
-      label: "Clinical Templates",
-      icon: FileCode,
-      show: true,
-      children: [
-        { to: "/staff/clinical-templates?tab=treatment", label: "Treatment Templates", icon: Stethoscope },
-        { to: "/staff/clinical-templates?tab=consents", label: "Consent Templates", icon: FileCheck },
-        { to: "/staff/clinical-templates?tab=doc", label: "Documentation Templates", icon: FileText },
-      ],
-    },
-    {
-      key: "admin-audit-logs",
-      label: "Audit Logs",
-      icon: History,
-      show: true,
-      children: [
-        { to: "/staff/audit-report", label: "PHI Access Logs", icon: Eye },
-        { to: "/staff/audit", label: "Login & System Activity", icon: History },
-        { to: "/staff/audit-report?filter=clinical", label: "Clinical & Consent Logs", icon: FileCheck },
-        { to: "/staff/audit-report?tab=export", label: "Export & Filters", icon: HardDrive },
-      ],
-    },
-    {
-      key: "admin-hipaa-policies",
-      label: "HIPAA Policies",
-      icon: BookOpen,
-      show: true,
-      children: [
-        { to: "/staff/hipaa-policies?tab=privacy", label: "Privacy Policy", icon: Lock },
-        { to: "/staff/hipaa-policies?tab=security", label: "Security Policy", icon: ShieldCheck },
-        { to: "/staff/hipaa-policies?tab=risk", label: "Risk Analysis", icon: ShieldAlert },
-        { to: "/staff/hipaa-policies?tab=disaster", label: "Disaster Recovery", icon: HardDrive },
-        { to: "/staff/hipaa-policies?tab=incident", label: "Incident Response", icon: AlertTriangle },
-        { to: "/staff/hipaa-policies?tab=history", label: "Version History", icon: History },
-      ],
-    },
-    {
-      key: "admin-staff-compliance",
-      label: "Staff Compliance",
-      icon: Shield,
-      show: true,
-      children: [
-        { to: "/staff/compliance/admin", label: "HIPAA Training & Signatures", icon: ShieldCheck },
-        { to: "/staff/compliance/admin?tab=certs", label: "Compliance Certificates", icon: FileCheck },
-      ],
-    },
-    {
-      key: "admin-device-inventory",
-      label: "Device Inventory",
-      icon: Laptop,
-      show: true,
-      children: [
-        { to: "/staff/vendors?tab=devices", label: "Clinic Devices & Users", icon: Laptop },
-        { to: "/staff/vendors?tab=encryption", label: "Encryption & Serial Records", icon: Lock },
-      ],
-    },
-    {
-      key: "admin-vendor-management",
-      label: "Vendor Management",
-      icon: Building2,
-      show: true,
-      children: [
-        { to: "/staff/vendors", label: "BAA Status & Registry", icon: Building2 },
-        { to: "/staff/vendors?filter=cloud", label: "Supabase, Google, Stripe & GHL", icon: HardDrive },
-      ],
-    },
-    {
-      key: "admin-breach-reports",
-      label: "Incident & Breach Reports",
-      icon: ShieldAlert,
-      show: true,
-      children: [
-        { to: "/staff/breach-report", label: "Open Cases & Timelines", icon: ShieldAlert },
-        { to: "/staff/breach-report?tab=cmia", label: "Notification Deadlines (CMIA 15-Day)", icon: Clock },
-      ],
-    },
-    {
-      key: "admin-reports",
-      label: "Reports",
-      icon: BarChart3,
-      show: true,
-      children: [
-        { to: "/staff/reports?tab=compliance", label: "Compliance & Audit Reports", icon: BarChart3 },
-        { to: "/staff/reports?tab=staff", label: "Staff & Patient Reports", icon: Users },
-        { to: "/staff/reports?tab=export", label: "Export Reports", icon: HardDrive },
-      ],
-    },
-    {
-      key: "admin-settings",
-      label: "Settings",
-      icon: Settings,
-      show: true,
-      children: [
-        { to: "/staff/pos-config", label: "General & Security Settings", icon: Settings },
-        { to: "/staff/pos-config?tab=auth", label: "Authentication & System Config", icon: Lock },
-      ],
-    },
+  // Admin modules ONLY as requested by the user:
+  // 1. Staff Management
+  // 2. Audit Logs
+  // 3. HIPAA Policies
+  // 4. Device Inventory
+  // 5. Vendor Management
+  // 6. Breach Reports
+  // 7. Compliance Dashboard
+  const adminNavItems: NavItem[] = useMemo(() => [
+    { to: "/staff/admin", label: "Compliance Dashboard", icon: ShieldCheck },
+    { to: "/staff/team", label: "Staff Management", icon: Users },
+    { to: "/staff/audit-report", label: "Audit Logs", icon: History },
+    { to: "/staff/hipaa-policies", label: "HIPAA Policies", icon: BookOpen },
+    { to: "/staff/vendors?tab=devices", label: "Device Inventory", icon: Laptop },
+    { to: "/staff/vendors", label: "Vendor Management", icon: Building2 },
+    { to: "/staff/breach-report", label: "Breach Reports", icon: ShieldAlert },
   ], []);
 
   // Standard staff navigation
@@ -265,17 +164,14 @@ export default function StaffLayout() {
     ];
   }, [isScheduler, isReceptionist, isStaff, isNP, pendingCount, unreadSms]);
 
-  const groups = isAdmin ? adminGroups : staffGroups;
-
-  // Track open group(s): auto-open the one containing the current route.
   const activeGroupKey = useMemo(() => {
-    for (const g of groups) {
+    for (const g of staffGroups) {
       if (g.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + "/"))) {
         return g.key;
       }
     }
-    return groups[0]?.key;
-  }, [groups, location.pathname]);
+    return staffGroups[0]?.key;
+  }, [staffGroups, location.pathname]);
 
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
@@ -298,7 +194,6 @@ export default function StaffLayout() {
   }
 
   if (!user) return <Navigate to="/staff/login" replace />;
-
   if (isPrivileged && !mfaOk) return <Navigate to="/staff/mfa" replace />;
 
   const isStaffMember = isAdmin || isScheduler || isReceptionist || isStaff || isNP;
@@ -337,85 +232,93 @@ export default function StaffLayout() {
 
   const NavInner = (
     <>
-      {/* Single, direct Dashboard item for Admin (NO DROPDOWN) */}
-      {isAdmin && (
-        <NavLink
-          to="/staff/admin"
-          end
-          onClick={() => setOpen(false)}
-          className={({ isActive }) =>
-            `flex items-center gap-2.5 px-3 py-2.5 mb-3 rounded-xl text-xs font-semibold transition border ${
-              isActive
-                ? "bg-primary text-primary-foreground border-primary shadow-xs"
-                : "bg-card text-foreground border-border hover:bg-secondary/60"
-            }`
-          }
-        >
-          <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
-          <span>Dashboard</span>
-        </NavLink>
+      {isAdmin ? (
+        <div className="space-y-1.5">
+          <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 mb-2">Admin Modules</div>
+          {adminNavItems.map((item) => {
+            const Icon = item.icon;
+            const active = isSubActive(item.to);
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className={() =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition ${
+                    active
+                      ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                  }`
+                }
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+        </div>
+      ) : (
+        staffGroups.filter(g => g.show).map((g) => {
+          const isOpen = !!openGroups[g.key];
+          const GIcon = g.icon;
+          const visibleChildren = g.children.filter(c => c.show !== false);
+          if (visibleChildren.length === 0) return null;
+          return (
+            <div key={g.key} className="space-y-0.5">
+              <button
+                onClick={() => toggleGroup(g.key)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <GIcon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground transition" />
+                  <span className="font-medium truncate">{g.label}</span>
+                  {g.badge ? (
+                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-primary/15 text-primary font-bold shrink-0">
+                      {g.badge}
+                    </span>
+                  ) : null}
+                </div>
+                {isOpen ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
+              </button>
+
+              {isOpen && (
+                <div className="pl-6 space-y-0.5 border-l border-border/60 ml-4 my-1">
+                  {visibleChildren.map((c) => {
+                    const CIcon = c.icon;
+                    const active = isSubActive(c.to);
+                    return (
+                      <NavLink
+                        key={c.to}
+                        to={c.to}
+                        className={() =>
+                          `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
+                            active
+                              ? "bg-primary text-primary-foreground font-semibold"
+                              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                          }`
+                        }
+                        onClick={() => setOpen(false)}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CIcon className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{c.label}</span>
+                        </div>
+                        {c.badge ? (
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-primary/15 text-primary font-bold shrink-0">
+                            {c.badge}
+                          </span>
+                        ) : null}
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })
       )}
 
-      {groups.filter(g => g.show).map((g) => {
-        const isOpen = !!openGroups[g.key];
-        const GIcon = g.icon;
-        const visibleChildren = g.children.filter(c => c.show !== false);
-        if (visibleChildren.length === 0) return null;
-        return (
-          <div key={g.key} className="space-y-0.5">
-            <button
-              onClick={() => toggleGroup(g.key)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition group"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <GIcon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground transition" />
-                <span className="font-medium truncate">{g.label}</span>
-                {g.badge ? (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-primary/15 text-primary font-bold shrink-0">
-                    {g.badge}
-                  </span>
-                ) : null}
-              </div>
-              {isOpen ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
-            </button>
-
-            {isOpen && (
-              <div className="pl-6 space-y-0.5 border-l border-border/60 ml-4 my-1">
-                {visibleChildren.map((c) => {
-                  const CIcon = c.icon;
-                  const active = isSubActive(c.to);
-                  return (
-                    <NavLink
-                      key={c.to}
-                      to={c.to}
-                      className={() =>
-                        `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
-                          active
-                            ? "bg-primary text-primary-foreground font-semibold"
-                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                        }`
-                      }
-                      onClick={() => setOpen(false)}
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <CIcon className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{c.label}</span>
-                      </div>
-                      {c.badge ? (
-                        <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-primary/15 text-primary font-bold shrink-0">
-                          {c.badge}
-                        </span>
-                      ) : null}
-                    </NavLink>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-      <div className="pt-3 mt-2 border-t border-border space-y-0.5">
+      <div className="pt-3 mt-4 border-t border-border space-y-0.5">
         <NavLink to="/staff/me" className={footerLinkCls} onClick={() => setOpen(false)}><UserCircle2 className="h-4 w-4" />My Profile</NavLink>
         <NavLink to="/staff/help" className={footerLinkCls} onClick={() => setOpen(false)}><BookOpen className="h-4 w-4" />Help / Handbook</NavLink>
       </div>
@@ -448,77 +351,62 @@ export default function StaffLayout() {
       {/* Main Container with Sidebar and Content */}
       <div className="flex-1 flex overflow-hidden min-h-0">
         {/* Mobile / tablet drawer button header */}
-        <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-2 border-b border-border bg-background/95 backdrop-blur w-full">
-          <span className="text-xs font-medium text-muted-foreground">{isAdmin ? "Admin Navigation" : "Staff Navigation"}</span>
-          <button onClick={() => setOpen(v => !v)} aria-label="Menu" className="p-2 text-muted-foreground hover:text-foreground">
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
+        <div className="md:hidden border-b border-border p-3 flex items-center justify-between bg-card shrink-0">
+          <div className="flex items-center gap-2">
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon"><Menu className="h-5 w-5" /></Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64 p-4 flex flex-col justify-between">
+                <div>
+                  <div className="font-serif text-lg font-bold mb-4">Navigation</div>
+                  <nav className="space-y-1">{NavInner}</nav>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start text-xs"
+                  onClick={async () => {
+                    clearDemoAuthSession();
+                    await supabase.auth.signOut();
+                    navigate("/staff/login");
+                  }}
+                >
+                  <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+                </Button>
+              </SheetContent>
+            </Sheet>
+            <span className="font-serif text-sm font-semibold">{isAdmin ? "Admin Portal" : "Staff Portal"}</span>
+          </div>
         </div>
 
-        {/* Mobile / tablet drawer */}
-        {open && (
-          <div className="lg:hidden fixed inset-0 z-50" onClick={() => setOpen(false)}>
-            <div className="absolute inset-0 bg-black/30" />
-            <aside className="absolute right-0 top-0 bottom-0 w-80 max-w-[85vw] bg-card border-l border-border flex flex-col" onClick={(e) => e.stopPropagation()}>
-              <div className="p-4 border-b border-border flex items-center justify-between">
-                <span className="text-sm font-medium">{isAdmin ? "Admin Menu" : "Staff Menu"}</span>
-                <button onClick={() => setOpen(false)} className="p-2 text-muted-foreground"><X className="h-5 w-5" /></button>
-              </div>
-              <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">{NavInner}</nav>
-              <div className="p-3 border-t border-border space-y-2">
-                <ClockInOutButton compact />
-                <div className="px-3 py-2 text-xs text-muted-foreground truncate">{user.email}</div>
-                <button
-                  onClick={async () => { clearDemoAuthSession(); await supabase.auth.signOut(); navigate("/staff/login"); }}
-                  className="w-full flex items-center gap-2 px-3 py-3 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                >
-                  <LogOut className="h-4 w-4" />Sign out
-                </button>
-              </div>
-            </aside>
+        {/* Desktop Sidebar */}
+        <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card p-4 shrink-0 justify-between">
+          <div className="space-y-4 overflow-y-auto pr-1">
+            <nav className="space-y-1">{NavInner}</nav>
           </div>
-        )}
 
-        {/* Desktop sidebar (>=1024px) */}
-        <aside className="hidden lg:flex w-64 border-r border-border bg-card/40 flex-col shrink-0">
-          <div className="p-5 border-b border-border">
-            <Link to={isAdmin ? "/staff/admin" : "/staff/today"} className="flex items-center gap-3">
-              <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-11 w-11 rounded-full object-cover shadow-soft" />
-              <div>
-                <div className="font-serif text-lg leading-tight">Radiantilyk Aesthetic</div>
-                <div className={`text-[10px] uppercase tracking-[0.3em] font-semibold mt-0.5 ${isAdmin ? "text-amber-600 font-bold" : "text-muted-foreground"}`}>
-                  {isAdmin ? "Admin Portal" : "Staff Portal"}
-                </div>
-              </div>
-            </Link>
-          </div>
-          <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">{NavInner}</nav>
-          <div className="p-3 border-t border-border space-y-2">
-            <ClockInOutButton />
-            <div className="px-3 py-2 text-xs text-muted-foreground truncate">{user.email}</div>
-            <button
-              onClick={async () => { clearDemoAuthSession(); await supabase.auth.signOut(); navigate("/staff/login"); }}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+          <div className="pt-3 border-t border-border">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-xs text-muted-foreground hover:text-foreground"
+              onClick={async () => {
+                clearDemoAuthSession();
+                await supabase.auth.signOut();
+                navigate("/staff/login");
+              }}
             >
-              <LogOut className="h-4 w-4" />Sign out
-            </button>
+              <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+            </Button>
           </div>
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-auto min-w-0 relative pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <main className="flex-1 overflow-y-auto bg-background">
           <Outlet />
         </main>
       </div>
-
-      <StaffBottomNav
-        canCheckout={isAdmin || isScheduler || isReceptionist || isStaff}
-        canClinical={isAdmin || isNP || isStaff}
-        pendingBadge={pendingCount + unreadSms}
-      />
-
-      <CommandPalette isAdmin={isAdmin} />
-      <KeyboardShortcutsHelp />
     </div>
   );
 }
