@@ -159,6 +159,13 @@ Deno.serve(async (req) => {
         .upsert(row, { onConflict: "appointment_id" });
       if (upErr) return json({ error: upErr.message }, 500);
 
+      if (payload.npp_acknowledged) {
+        await supa
+          .from("client_profiles")
+          .update({ npp_acknowledged_at: new Date().toISOString() })
+          .eq("email", String(appt.client_email).toLowerCase());
+      }
+
       await supa
         .from("appointments")
         .update({ intake_completed_at: new Date().toISOString() })

@@ -21,7 +21,7 @@ interface Body {
   startAt: string; // ISO
   client: {
     firstName: string; lastName: string; email: string; phone: string;
-    dob?: string; notes?: string; smsOptIn?: boolean;
+    dob?: string; notes?: string; smsOptIn?: boolean; marketingOptIn?: boolean;
   };
   stripeCustomerId?: string;
   stripePaymentMethodId?: string;
@@ -485,6 +485,19 @@ Deno.serve(async (req) => {
         },
       });
     } catch (e) { console.error("ghl sync failed", e); }
+
+    // Newsletter subscription (best-effort)
+    if (b.client.marketingOptIn) {
+      try {
+        await supa.from("suppressed_emails").delete().eq("email", email);
+        const { error: subErr } = await supa.from("newsletter_subscribers").insert({ email, source: "booking" });
+        if (subErr && !/duplicate|unique/i.test(subErr.message)) {
+          console.error("newsletter opt-in failed", subErr);
+        }
+      } catch (e) {
+        console.error("newsletter opt-in failed", e);
+      }
+    }
 
     // Auto-send pre-op instructions (best-effort, idempotent)
     try {

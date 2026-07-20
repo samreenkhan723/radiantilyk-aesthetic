@@ -114,6 +114,7 @@ export default function ClientIntake() {
   const [recent, setRecent] = useState("");
 
   const [hipaaAck, setHipaaAck] = useState(false);
+  const [nppAck, setNppAck] = useState(false);
   const [truthfulAck, setTruthfulAck] = useState(false);
   const [aiScribeAck, setAiScribeAck] = useState(false);
   const [sigName, setSigName] = useState("");
@@ -201,6 +202,7 @@ export default function ClientIntake() {
         return;
       }
       if (!truthfulAck) { toast.error("Please confirm the information above is accurate."); return; }
+      if (!nppAck) { toast.error("Please acknowledge the Notice of Privacy Practices (NPP)."); return; }
       if (!aiScribeAck) { toast.error("Please acknowledge the AI Scribe consent to continue."); return; }
       if (!sigName.trim()) { toast.error("Please type your full legal name as your signature."); return; }
     } else {
@@ -213,6 +215,7 @@ export default function ClientIntake() {
       if (!skinType) { toast.error("Please pick your skin type."); return; }
       if (!emName.trim() || !emPhone.trim()) { toast.error("Emergency contact name + phone are required."); return; }
       if (!hipaaAck || !truthfulAck) { toast.error("Please acknowledge HIPAA and the truthfulness attestation."); return; }
+      if (!nppAck) { toast.error("Please acknowledge the Notice of Privacy Practices (NPP)."); return; }
       if (!aiScribeAck) { toast.error("Please acknowledge the AI Scribe consent to continue."); return; }
       if (!sigName.trim()) { toast.error("Please type your full legal name as your signature."); return; }
     }
@@ -241,6 +244,7 @@ export default function ClientIntake() {
             signature_full_name: sigName,
             signature_date: new Date().toISOString().slice(0, 10),
             ai_scribe_consent: aiScribeAck,
+            npp_acknowledged: nppAck,
 
           }
         : {
@@ -269,6 +273,7 @@ export default function ClientIntake() {
             signature_full_name: sigName,
             signature_date: new Date().toISOString().slice(0, 10),
             ai_scribe_consent: aiScribeAck,
+            npp_acknowledged: nppAck,
 
           };
 
@@ -394,6 +399,10 @@ export default function ClientIntake() {
             <label className="flex items-start gap-3 text-sm">
               <Checkbox checked={truthfulAck} onCheckedChange={(v) => setTruthfulAck(!!v)} className="mt-0.5" />
               <span>I attest the information on file from {lastDate} remains accurate except for what I've noted above, to the best of my knowledge.</span>
+            </label>
+            <label className="flex items-start gap-3 text-sm">
+              <Checkbox checked={nppAck} onCheckedChange={(v) => setNppAck(!!v)} className="mt-0.5" />
+              <span>I acknowledge that I have received and reviewed the <a href="/privacy" target="_blank" className="underline text-primary hover:text-primary/80">Notice of Privacy Practices (NPP)</a>.</span>
             </label>
             <label className="flex items-start gap-3 text-sm">
               <Checkbox checked={aiScribeAck} onCheckedChange={(v) => setAiScribeAck(!!v)} className="mt-0.5" />
@@ -527,7 +536,11 @@ export default function ClientIntake() {
           <Label className="text-xs uppercase tracking-widest text-muted-foreground">Acknowledgements & signature *</Label>
           <label className="flex items-start gap-3 text-sm">
             <Checkbox checked={hipaaAck} onCheckedChange={(v) => setHipaaAck(!!v)} className="mt-0.5" />
-            <span>I acknowledge receipt of the Notice of Privacy Practices and authorize Radiantilyk Aesthetic to use my health information for treatment, payment, and operations as permitted by HIPAA and California Civil Code §56 (Confidentiality of Medical Information Act).</span>
+            <span>I authorize Radiantilyk Aesthetic to use my health information for treatment, payment, and operations as permitted by HIPAA and California Civil Code §56 (Confidentiality of Medical Information Act).</span>
+          </label>
+          <label className="flex items-start gap-3 text-sm">
+            <Checkbox checked={nppAck} onCheckedChange={(v) => setNppAck(!!v)} className="mt-0.5" />
+            <span>I acknowledge that I have received and reviewed the <a href="/privacy" target="_blank" className="underline text-primary hover:text-primary/80">Notice of Privacy Practices (NPP)</a>.</span>
           </label>
           <label className="flex items-start gap-3 text-sm">
             <Checkbox checked={truthfulAck} onCheckedChange={(v) => setTruthfulAck(!!v)} className="mt-0.5" />
