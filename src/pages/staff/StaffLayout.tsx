@@ -37,12 +37,7 @@ export default function StaffLayout() {
   const [open, setOpen] = useState(false);
   const [mfaChecked, setMfaChecked] = useState(false);
   const [mfaOk, setMfaOk] = useState(false);
-<<<<<<< HEAD
   const { showWarning, countdown, staySignedIn } = useIdleLogout(!!user);
-=======
-
-  useIdleLogout(!!user);
->>>>>>> cb345dceafa23ebc8ef813f1aec444fbe233a0c3
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
   useEffect(() => {
