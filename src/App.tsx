@@ -1,3 +1,5 @@
+// Radiantilyk Aesthetic Enterprise Healthcare App
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -186,6 +188,7 @@ const App = () => (
             <Route path="finances" element={<AdminOnly><StaffFinances /></AdminOnly>} />
             <Route path="audit" element={<AdminOnly><StaffAudit /></AdminOnly>} />
             <Route path="audit-report" element={<AdminOnly><StaffAuditReport /></AdminOnly>} />
+            <Route path="phi-audit" element={<Navigate to="/staff/audit-report" replace />} />
             <Route path="marketing" element={<Navigate to="/staff/marketing-hub" replace />} />
             <Route path="checkout" element={<StaffCheckout />} />
             <Route path="checkout/:appointmentId" element={<StaffCheckout />} />

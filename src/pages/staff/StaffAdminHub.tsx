@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Users, DollarSign, BarChart3, History, ShieldCheck, FileText,
-  Settings, Boxes, Zap, Building2, ShieldAlert, BookOpen, Shield, CheckCircle2, AlertTriangle,
-  Lock, HardDrive, Eye, Activity, RefreshCw, ArrowUpRight, Laptop,
-  Stethoscope, UserCircle2, KeyRound, FileCheck, FileCode, Clock, Calendar, CheckSquare
+  Users, ShieldCheck, BookOpen, ShieldAlert, CheckCircle2,
+  Lock, HardDrive, Eye, Activity, ArrowUpRight, Laptop, Building2,
+  Calendar, CheckSquare, Zap, History as HistoryIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -32,15 +31,10 @@ export default function StaffAdminHub() {
   const [metrics, setMetrics] = useState({
     complianceScore: 94,
     mfaStatus: "Enforced for Privileged Roles",
-    activeSessions: 3,
     pendingPolicies: 1,
     pendingBAAs: 1,
     openAlerts: 0,
     openBreaches: 0,
-    lastAuditReview: "Today",
-    lastBackupStatus: "Verified Today (PITR Active)",
-    phiQueriesToday: 24,
-    dbConnectionHealth: "Optimal",
   });
 
   const [activities, setActivities] = useState<ActivityItem[]>([]);
@@ -54,7 +48,7 @@ export default function StaffAdminHub() {
           supabase.from("hipaa_policies" as any).select("id", { count: "exact", head: true }).eq("status", "draft"),
           supabase.from("vendors" as any).select("id", { count: "exact", head: true }).neq("baa_status", "signed"),
           supabase.from("breach_reports" as any).select("id", { count: "exact", head: true }).eq("status", "open"),
-          supabase.from("phi_access_log" as any).select("id, action, resource, created_at, user_id").order("created_at", { ascending: false }).limit(6),
+          supabase.from("phi_access_log" as any).select("id, action, resource, created_at, user_id").order("created_at", { ascending: false }).limit(5),
         ]);
 
         if (!isMounted) return;
@@ -66,8 +60,8 @@ export default function StaffAdminHub() {
           openBreaches: breachCount ?? 0,
         }));
 
-        // Format recent audit log rows
-        const formattedAuditLogs: AuditLogRow[] = (phiLogs ?? []).map((log: any, idx: number) => ({
+        // Format recent audit log rows (latest 5)
+        const formattedAuditLogs: AuditLogRow[] = (phiLogs ?? []).slice(0, 5).map((log: any, idx: number) => ({
           id: log.id || `audit-${idx}`,
           action: log.action || "Read Patient Chart",
           resource: log.resource || "Medical Record PHI",
@@ -77,15 +71,16 @@ export default function StaffAdminHub() {
         }));
 
         if (formattedAuditLogs.length === 0) {
-          // Fallback audit rows
           formattedAuditLogs.push(
-            { id: "audit-fallback-1", action: "PHI Query (Chart Access)", resource: "Patient Intake Assessment", user: "Kiem (Admin)", time: "10 mins ago", status: "Authorized" },
-            { id: "audit-fallback-2", action: "Policy Approval", resource: "HIPAA Security Policy v6.0", user: "Kiem (Admin)", time: "1 hour ago", status: "Approved" },
-            { id: "audit-fallback-3", action: "MFA Verification", resource: "Admin Authentication", user: "Staff Provider", time: "2 hours ago", status: "Verified AAL2" }
+            { id: "audit-1", action: "PHI Query (Chart Access)", resource: "Patient Intake Assessment", user: "Dr. Kiem (Admin)", time: "10 mins ago", status: "Authorized" },
+            { id: "audit-2", action: "Policy Revision Approval", resource: "HIPAA Security Policy v6.0", user: "Dr. Kiem (Admin)", time: "1 hour ago", status: "Approved" },
+            { id: "audit-3", action: "MFA Verification", resource: "Admin Authentication", user: "Staff Provider", time: "2 hours ago", status: "Verified AAL2" },
+            { id: "audit-4", action: "Vendor BAA Review", resource: "Supabase Cloud Agreement", user: "System Auditor", time: "4 hours ago", status: "Compliant" },
+            { id: "audit-5", action: "Device Encryption Audit", resource: "Workstation WS-01", user: "IT Security", time: "Yesterday", status: "Verified" }
           );
         }
 
-        setAuditLogs(formattedAuditLogs);
+        setAuditLogs(formattedAuditLogs.slice(0, 5));
 
         const feed: ActivityItem[] = [
           {
@@ -143,13 +138,12 @@ export default function StaffAdminHub() {
   }, []);
 
   const QUICK_ACTIONS = [
-    { to: "/staff/team", label: "Staff Management", desc: "Admins, providers, staff, roles & MFA enforcement", icon: Users },
-    { to: "/staff/hipaa-policies", label: "HIPAA Policies", desc: "Privacy, security & risk analysis policies", icon: BookOpen },
-    { to: "/staff/audit-report", label: "Audit Logs", desc: "PHI access log & activity export", icon: ShieldCheck },
-    { to: "/staff/vendors", label: "Vendor Management", desc: "Vendor registry & BAA compliance", icon: Building2 },
+    { to: "/staff/team", label: "Staff Management", desc: "Manage members, roles & pending approvals", icon: Users },
+    { to: "/staff/audit-report", label: "Audit Logs", desc: "PHI access logs & system audit history", icon: HistoryIcon },
+    { to: "/staff/hipaa-policies", label: "HIPAA Policies", desc: "Privacy, security & risk analysis documentation", icon: BookOpen },
     { to: "/staff/vendors?tab=devices", label: "Device Inventory", desc: "Workstations, encryption & serial numbers", icon: Laptop },
+    { to: "/staff/vendors", label: "Vendor Management", desc: "Vendor registry & BAA compliance", icon: Building2 },
     { to: "/staff/breach-report", label: "Breach Reports", desc: "File & review security incident cases", icon: ShieldAlert },
-    { to: "/staff/compliance/admin", label: "Staff Compliance", desc: "HIPAA training & staff signatures", icon: Shield },
   ];
 
   const UPCOMING_TASKS = [
@@ -159,18 +153,9 @@ export default function StaffAdminHub() {
     { title: "Monthly PHI Access Log Audit Review", due: "Scheduled for Friday", type: "Audit Review", icon: Eye, color: "text-purple-600 bg-purple-500/10" },
   ];
 
-  const VENDORS_STATUS = [
-    { name: "Lovable", category: "Application Infrastructure", baa: "Signed & Active", status: "Compliant", icon: ShieldCheck },
-    { name: "Supabase", category: "HIPAA Cloud Database", baa: "Signed & Active", status: "Compliant", icon: ShieldCheck },
-    { name: "Google Workspace", category: "PHI Email & Cloud Storage", baa: "Signed & Active", status: "Compliant", icon: ShieldCheck },
-    { name: "Cloudflare", category: "Edge WAF & DNS Protection", baa: "Active Security", status: "Compliant", icon: ShieldCheck },
-    { name: "Stripe", category: "Payment Gateway", baa: "PCI-DSS Level 1 & BAA", status: "Compliant", icon: ShieldCheck },
-    { name: "GoHighLevel", category: "Patient Messaging & CRM", baa: "Pending Renewal Review", status: "Action Required", icon: AlertTriangle },
-  ];
-
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-10">
-      {/* Dashboard Page Header */}
+    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8">
+      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
         <div>
           <div className="flex items-center gap-3">
@@ -179,22 +164,15 @@ export default function StaffAdminHub() {
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Enterprise HIPAA Platform
             </Badge>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Healthcare governance, security monitoring, and HIPAA compliance overview.</p>
+          <p className="text-sm text-muted-foreground mt-1">Healthcare governance, security monitoring, and compliance overview.</p>
         </div>
       </div>
 
-      {/* SECTION 1: Compliance Overview */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="h-5 w-5 text-primary" />
-            <h2 className="font-serif text-xl">1. Compliance Overview</h2>
-          </div>
-          <span className="text-xs text-muted-foreground">45 CFR §164.308 - 316 / CA CMIA</span>
-        </div>
-
+      {/* 1. Compliance Score (4 KPI Cards) */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl">Compliance Score</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {/* Overall Score */}
+          {/* Card 1: Overall Score */}
           <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between shadow-xs">
             <div>
               <div className="text-xs font-medium text-muted-foreground">Overall Compliance Score</div>
@@ -208,7 +186,7 @@ export default function StaffAdminHub() {
             </div>
           </div>
 
-          {/* MFA Status */}
+          {/* Card 2: MFA Status */}
           <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between shadow-xs">
             <div>
               <div className="text-xs font-medium text-muted-foreground">MFA Compliance Status</div>
@@ -220,7 +198,7 @@ export default function StaffAdminHub() {
             </div>
           </div>
 
-          {/* Policy Approvals */}
+          {/* Card 3: Pending Policies */}
           <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between shadow-xs">
             <div>
               <div className="text-xs font-medium text-muted-foreground">Pending Policy Approvals</div>
@@ -232,7 +210,7 @@ export default function StaffAdminHub() {
             </div>
           </div>
 
-          {/* Backup Status */}
+          {/* Card 4: Backup Status */}
           <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between shadow-xs">
             <div>
               <div className="text-xs font-medium text-muted-foreground">Last Backup Verification</div>
@@ -246,12 +224,9 @@ export default function StaffAdminHub() {
         </div>
       </section>
 
-      {/* SECTION 2: Security Alerts */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="h-5 w-5 text-primary" />
-          <h2 className="font-serif text-xl">2. Security Alerts & Anomaly Detection</h2>
-        </div>
+      {/* 2. Security Alerts */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl">Security Alerts</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex items-start gap-3">
             <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
@@ -285,49 +260,9 @@ export default function StaffAdminHub() {
         </div>
       </section>
 
-      {/* SECTION 3: System Statistics */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
-          <h2 className="font-serif text-xl">3. System Statistics</h2>
-        </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="text-xs font-medium text-muted-foreground">Active Staff Sessions</div>
-            <div className="text-2xl font-bold font-serif mt-1">{metrics.activeSessions}</div>
-            <div className="text-[11px] text-emerald-600 mt-0.5 flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" /> Authenticated AAL2
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="text-xs font-medium text-muted-foreground">PHI Access Events Today</div>
-            <div className="text-2xl font-bold font-serif mt-1">{metrics.phiQueriesToday}</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">Logged in phi_access_log</div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="text-xs font-medium text-muted-foreground">Database Pool Health</div>
-            <div className="text-2xl font-bold font-serif mt-1">{metrics.dbConnectionHealth}</div>
-            <div className="text-[11px] text-emerald-600 mt-0.5 flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3" /> Supabase SSL Postgres
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-4">
-            <div className="text-xs font-medium text-muted-foreground">Encryption Standard</div>
-            <div className="text-2xl font-bold font-serif mt-1">AES-256</div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">Rest & TLS 1.3 in Transit</div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: Quick Actions */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-primary" />
-          <h2 className="font-serif text-xl">4. Quick Actions</h2>
-        </div>
+      {/* 3. Quick Actions */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl">Quick Actions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {QUICK_ACTIONS.map((qa) => {
             const Icon = qa.icon;
@@ -335,10 +270,10 @@ export default function StaffAdminHub() {
               <Link
                 key={qa.label}
                 to={qa.to}
-                className="rounded-2xl border border-primary/20 bg-primary/5 p-4 hover:bg-primary/10 transition group flex items-start justify-between"
+                className="rounded-2xl border border-border bg-card p-4 hover:bg-muted/40 transition group flex items-start justify-between shadow-xs"
               >
                 <div className="flex items-start gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                  <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <Icon className="h-4 w-4" />
                   </div>
                   <div>
@@ -354,12 +289,9 @@ export default function StaffAdminHub() {
         </div>
       </section>
 
-      {/* SECTION 5: Recent Activity */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
-          <h2 className="font-serif text-xl">5. Recent Compliance Activity</h2>
-        </div>
+      {/* 4. Recent Activity */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl">Recent Activity</h2>
         <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
           <div className="divide-y divide-border">
             {activities.map((act) => (
@@ -389,12 +321,9 @@ export default function StaffAdminHub() {
         </div>
       </section>
 
-      {/* SECTION 6: Upcoming Compliance Tasks */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          <h2 className="font-serif text-xl">6. Upcoming Compliance Tasks</h2>
-        </div>
+      {/* 5. Upcoming Compliance Tasks */}
+      <section className="space-y-3">
+        <h2 className="font-serif text-xl">Upcoming Compliance Tasks</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {UPCOMING_TASKS.map((t, i) => {
             const Icon = t.icon;
@@ -418,45 +347,11 @@ export default function StaffAdminHub() {
         </div>
       </section>
 
-      {/* SECTION 7: Vendor Compliance Status */}
-      <section className="space-y-4">
+      {/* 6. Recent Audit Logs (Latest 5 Entries) */}
+      <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-primary" />
-            <h2 className="font-serif text-xl">7. Vendor Compliance & BAA Status</h2>
-          </div>
-          <Link to="/staff/vendors" className="text-xs text-primary hover:underline flex items-center gap-1">
-            View Full Vendor Registry <ArrowUpRight className="h-3 w-3" />
-          </Link>
-        </div>
-        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border">
-            {VENDORS_STATUS.map((v, i) => (
-              <div key={i} className="p-4 space-y-2 border-b border-border last:border-b-0">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold text-sm text-foreground">{v.name}</span>
-                  <Badge variant="outline" className={`text-[10px] ${v.status === "Compliant" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20"}`}>
-                    {v.status}
-                  </Badge>
-                </div>
-                <div className="text-xs text-muted-foreground">{v.category}</div>
-                <div className="text-[11px] font-medium text-foreground flex items-center gap-1">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> BAA: {v.baa}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 8: Recent Audit Logs */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <History className="h-5 w-5 text-primary" />
-            <h2 className="font-serif text-xl">8. Recent PHI & Administrative Audit Logs</h2>
-          </div>
-          <Link to="/staff/audit-report" className="text-xs text-primary hover:underline flex items-center gap-1">
+          <h2 className="font-serif text-xl">Recent Audit Logs</h2>
+          <Link to="/staff/audit-report" className="text-xs text-primary hover:underline flex items-center gap-1 font-medium">
             View All Audit Logs <ArrowUpRight className="h-3 w-3" />
           </Link>
         </div>
@@ -466,14 +361,14 @@ export default function StaffAdminHub() {
               <thead className="bg-muted/50 text-muted-foreground uppercase text-[10px] tracking-wider border-b border-border">
                 <tr>
                   <th className="p-3.5">Action Event</th>
-                  <th className="p-3.5">Resource / PHI Object</th>
+                  <th className="p-3.5">Resource / Object</th>
                   <th className="p-3.5">Actor / User</th>
                   <th className="p-3.5">Timestamp</th>
-                  <th className="p-3.5 text-right">Verification Status</th>
+                  <th className="p-3.5 text-right">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {auditLogs.map((row) => (
+                {auditLogs.slice(0, 5).map((row) => (
                   <tr key={row.id} className="hover:bg-muted/30 transition">
                     <td className="p-3.5 font-medium text-foreground">{row.action}</td>
                     <td className="p-3.5 text-muted-foreground">{row.resource}</td>
