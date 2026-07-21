@@ -60,14 +60,31 @@ export default function StaffTeam() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [addBusy, setAddBusy] = useState(false);
-  const [draft, setDraft] = useState({ id: "" as string | null, full_name: "", title: "", email: "", color: PALETTE[0], role: "staff" as Role, sendInvite: true });
+  const [draft, setDraft] = useState({ id: "" as string | null, full_name: "", title: "", email: "", password: "", color: PALETTE[0], role: "staff" as Role, sendInvite: true });
+
+  const openAdd = () => {
+    setDraft({
+      id: null,
+      full_name: "",
+      title: "",
+      email: "",
+      password: "",
+      color: PALETTE[0],
+      role: "staff",
+      sendInvite: true,
+    });
+    setAddOpen(true);
+  };
 
   const openEdit = (m: Member, primaryRole: Role) => {
+    const approvedAccounts: any[] = JSON.parse(localStorage.getItem("rka_approved_staff_accounts") || "[]");
+    const existingAcc = approvedAccounts.find((a: any) => a.email.toLowerCase() === (m.email || "").toLowerCase());
     setDraft({
       id: m.id,
       full_name: m.full_name || "",
       title: m.title || "",
       email: m.email || "",
+      password: existingAcc?.password || "12345678",
       color: m.color || PALETTE[0],
       role: primaryRole,
       sendInvite: false
@@ -179,24 +196,35 @@ export default function StaffTeam() {
     setAddBusy(true);
 
     const email = draft.email.trim().toLowerCase();
-    const password = "12345678";
+    const password = draft.password.trim() || "12345678";
 
     if (draft.id) {
       // EDIT MODE
       // Update approved login accounts
       const approvedAccounts: any[] = JSON.parse(localStorage.getItem("rka_approved_staff_accounts") || "[]");
       const originalMember = members.find(m => m.id === draft.id);
+      let found = false;
       const updatedAccounts = approvedAccounts.map(acc => {
-        if (acc.email === originalMember?.email) {
+        if (acc.email.toLowerCase() === originalMember?.email?.toLowerCase() || acc.email.toLowerCase() === email) {
+          found = true;
           return {
             ...acc,
             email,
+            password,
             role: draft.role,
             full_name: draft.full_name.trim(),
           };
         }
         return acc;
       });
+      if (!found) {
+        updatedAccounts.push({
+          email,
+          password,
+          role: draft.role,
+          full_name: draft.full_name.trim(),
+        });
+      }
       localStorage.setItem("rka_approved_staff_accounts", JSON.stringify(updatedAccounts));
 
       // Update active team list
@@ -593,7 +621,7 @@ export default function StaffTeam() {
           <p className="text-xs text-muted-foreground mt-1">Manage all practice members, assign roles, and send activation emails.</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setAddOpen(true)} className="rounded-full">
+          <Button onClick={openAdd} className="rounded-full">
             <Plus className="h-3.5 w-3.5 mr-1.5" /> Add team member
           </Button>
           <Button variant="outline" onClick={sendAll} disabled={busy === "all"} className="rounded-full">
@@ -714,6 +742,19 @@ export default function StaffTeam() {
             <div>
               <Label>Email</Label>
               <Input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} className="mt-1.5" placeholder="jane@example.com" />
+            </div>
+            <div>
+              <Label>Password for Staff Login</Label>
+              <Input
+                type="text"
+                value={draft.password}
+                onChange={(e) => setDraft({ ...draft, password: e.target.value })}
+                className="mt-1.5 font-mono"
+                placeholder="Set password (e.g. dhruva123)"
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                {draft.id ? "Enter a new password to update staff login." : "Staff will use this password to sign into the Staff Portal."}
+              </p>
             </div>
             <div>
               <Label>Role</Label>
