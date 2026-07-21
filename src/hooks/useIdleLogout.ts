@@ -39,10 +39,14 @@ export function useIdleLogout(enabled: boolean) {
     events.forEach((e) => window.addEventListener(e, bump, { passive: true }));
     document.addEventListener("visibilitychange", bump);
 
+    let isLoggingOut = false;
     const interval = window.setInterval(async () => {
+      if (isLoggingOut) return;
       const idle = Date.now() - lastActivity.current;
       
       if (idle >= IDLE_MS) {
+        isLoggingOut = true;
+        window.clearInterval(interval);
         try { await supabase.auth.signOut(); } catch {}
         window.location.href = "/staff/login?reason=idle";
         return;
