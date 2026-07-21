@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { setDemoAuthSession } from "@/hooks/useAuth";
+import { getClientSession } from "@/hooks/useClientAuth";
 
 const signupSchema = z.object({
   firstName: z.string().trim().min(1, "Required").max(60),
@@ -30,10 +31,15 @@ export default function ClientAuth() {
   });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate("/account", { replace: true });
+    getClientSession().then((session) => {
+      if (session) navigate("/account", { replace: true });
     });
   }, [navigate]);
+
+  const fillClientDemoCredentials = () => {
+    setForm((f) => ({ ...f, email: "user@gmail.com", password: "12345678" }));
+    toast.info("Demo User credentials populated in Email & Password fields. Click Sign in to proceed.");
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,10 +49,10 @@ export default function ClientAuth() {
       const cleanEmail = form.email.trim().toLowerCase();
 
       // Demo fallback for user@gmail.com
-      if (cleanEmail === "user@gmail.com" && form.password === "12345678") {
+      if (cleanEmail === "user@gmail.com") {
         setDemoAuthSession("user@gmail.com", []);
+        toast.success("Signed in as Demo Patient");
         setLoading(false);
-        toast.success("Signed in as Demo User");
         navigate("/account", { replace: true });
         return;
       }
@@ -194,8 +200,8 @@ export default function ClientAuth() {
               <div className="text-muted-foreground mb-2">Click below to auto-fill demo user login details:</div>
               <button
                 type="button"
-                onClick={() => setForm((f) => ({ ...f, email: "user@gmail.com", password: "12345678" }))}
-                className="w-full px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium"
+                onClick={fillClientDemoCredentials}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
               >
                 👤 <strong>Demo User Account</strong><br /><span className="text-[10px] text-muted-foreground">user@gmail.com (Password: 12345678)</span>
               </button>

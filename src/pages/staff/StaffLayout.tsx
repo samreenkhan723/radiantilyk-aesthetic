@@ -343,14 +343,30 @@ export default function StaffLayout() {
           <span className="text-xs text-muted-foreground hidden md:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
         </div>
 
-        {/* Right Corner: Company Name & Logo */}
-        <Link to={isAdmin ? "/staff/admin" : "/staff/today"} className="flex items-center gap-3 hover:opacity-90 transition">
-          <div className="text-right hidden sm:block">
-            <div className="font-serif text-sm leading-tight font-medium">Radiantilyk Aesthetic</div>
-            <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{isAdmin ? "Admin Dashboard" : "Staff Hub"}</div>
-          </div>
-          <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-9 w-9 rounded-full object-cover shadow-soft" />
-        </Link>
+        {/* Right Corner: Company Name, Logo & Top Right Sign Out */}
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link to={isAdmin ? "/staff/admin" : "/staff/today"} className="flex items-center gap-3 hover:opacity-90 transition">
+            <div className="text-right hidden sm:block">
+              <div className="font-serif text-sm leading-tight font-medium">Radiantilyk Aesthetic</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{isAdmin ? "Admin Dashboard" : "Staff Hub"}</div>
+            </div>
+            <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-9 w-9 rounded-full object-cover shadow-soft" />
+          </Link>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 shrink-0"
+            onClick={async () => {
+              clearDemoAuthSession();
+              await supabase.auth.signOut();
+              navigate("/staff/login");
+            }}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </Button>
+        </div>
       </header>
 
       {/* Main Container with Sidebar and Content */}

@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
+import { getClientSession } from "@/hooks/useClientAuth";
+
 type Tab = "appointments" | "messages" | "forms" | "photos" | "profile";
 
 // Shown on token-page success screens. If the visitor is already signed into
@@ -13,8 +15,8 @@ export function PortalCTA({ tab = "appointments", label }: { tab?: Tab; label?: 
   const [signedIn, setSignedIn] = useState(false);
   useEffect(() => {
     let alive = true;
-    supabase.auth.getSession().then(({ data }) => {
-      if (alive) setSignedIn(!!data.session);
+    getClientSession().then((session) => {
+      if (alive) setSignedIn(!!session);
     });
     return () => { alive = false; };
   }, []);

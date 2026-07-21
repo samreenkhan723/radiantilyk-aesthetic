@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, ChevronLeft, ChevronRight, Printer, CheckCircle2, DollarSign, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ui/confirm";
 import { format, addDays, startOfDay } from "date-fns";
 
 type Member = {
@@ -255,7 +256,7 @@ export default function StaffPayroll() {
   };
 
   const unmarkPaid = async (staff_id: string) => {
-    if (!confirm("Remove this payout record? The staff member will appear as unpaid for this week.")) return;
+    if (!(await confirmDialog({ title: "Remove payout record?", description: "The staff member will appear as unpaid for this pay period. This action can be reversed.", destructive: true, confirmLabel: "Remove Payout" }))) return;
     const { error } = await (supabase as any).from("staff_payouts")
       .delete()
       .eq("staff_id", staff_id)

@@ -9,20 +9,65 @@ export interface ClientAuthState {
   emailVerified: boolean;
 }
 
+export async function getClientSession(): Promise<Session | null> {
+  const raw = sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session");
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      return { user: parsed.user, access_token: "demo-token", refresh_token: "demo-refresh" } as Session;
+    } catch (e) {}
+  }
+  const { data: { session } } = await supabase.auth.getSession();
+  return session;
+}
+
 export function useClientAuth(): ClientAuthState {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const checkDemo = () => {
+      const raw = sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          setSession({ user: parsed.user, access_token: "demo-token", refresh_token: "demo-refresh" } as Session);
+          setLoading(false);
+          return true;
+        } catch (e) {}
+      }
+      return false;
+    };
+
+    const handleDemoChange = () => {
+      if (!checkDemo()) {
+        supabase.auth.getSession().then(({ data: { session: s } }) => {
+          setSession(s);
+          setLoading(false);
+        });
+      }
+    };
+
+    window.addEventListener("rka_demo_auth_change", handleDemoChange);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, s) => {
+      if (sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session")) return;
       setSession(s);
       setLoading(false);
     });
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
-      setLoading(false);
-    });
-    return () => subscription.unsubscribe();
+
+    if (!checkDemo()) {
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session")) return;
+        setSession(s);
+        setLoading(false);
+      });
+    }
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("rka_demo_auth_change", handleDemoChange);
+    };
   }, []);
 
   return {

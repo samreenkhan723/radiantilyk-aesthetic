@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowRight, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Field } from "./Field";
+import { formatPhone10 } from "@/lib/formatPhone";
 
 export const StepDetails = ({
   client, setClient, summary, onContinue, fieldErrors, onClearError,
@@ -36,7 +37,7 @@ export const StepDetails = ({
         <Field label="First name *" error={fieldErrors.firstName}><Input id="book-firstName" aria-invalid={!!fieldErrors.firstName} value={client.firstName} onChange={(e) => setField("firstName", e.target.value)} maxLength={60} className={`h-12 ${fieldErrors.firstName ? "border-destructive focus-visible:ring-destructive" : ""}`} autoComplete="given-name" autoCapitalize="words" /></Field>
         <Field label="Last name *" error={fieldErrors.lastName}><Input id="book-lastName" aria-invalid={!!fieldErrors.lastName} value={client.lastName} onChange={(e) => setField("lastName", e.target.value)} maxLength={60} className={`h-12 ${fieldErrors.lastName ? "border-destructive focus-visible:ring-destructive" : ""}`} autoComplete="family-name" autoCapitalize="words" /></Field>
         <Field label="Email *" error={fieldErrors.email}><Input id="book-email" aria-invalid={!!fieldErrors.email} type="email" inputMode="email" autoComplete="email" autoCapitalize="off" autoCorrect="off" value={client.email} onChange={(e) => setField("email", e.target.value)} maxLength={120} className={`h-12 ${fieldErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}`} /></Field>
-        <Field label="Phone *" error={fieldErrors.phone}><Input id="book-phone" aria-invalid={!!fieldErrors.phone} type="tel" inputMode="tel" autoComplete="tel" value={client.phone} onChange={(e) => setField("phone", e.target.value)} maxLength={20} className={`h-12 ${fieldErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`} /></Field>
+        <Field label="Phone (10 digits) *" error={fieldErrors.phone}><Input id="book-phone" aria-invalid={!!fieldErrors.phone} type="tel" inputMode="tel" autoComplete="tel" placeholder="(555) 000-0000" value={client.phone} onChange={(e) => setField("phone", formatPhone10(e.target.value))} maxLength={14} className={`h-12 ${fieldErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}`} /></Field>
         <Field label="Date of birth" hint="Required for medical records"><Input id="book-dob" type="date" value={client.dob} onChange={(e) => setField("dob", e.target.value)} className="h-12" /></Field>
       </div>
 

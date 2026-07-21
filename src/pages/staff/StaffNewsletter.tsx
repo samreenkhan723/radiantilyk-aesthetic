@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Loader2, Sparkles, Send, Users, Mail, ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ui/confirm";
 
 type Audience = "everyone" | "all_clients" | "lapsed" | "vip";
 
@@ -105,7 +106,7 @@ export default function StaffNewsletter() {
       toast.error("Click 'Preview recipients' first so you know who's getting this");
       return;
     }
-    if (!confirm(`Send this newsletter to ${audienceSize} ${audienceSize === 1 ? "person" : "people"}?`)) return;
+    if (!(await confirmDialog({ title: `Send newsletter campaign?`, description: `Confirm dispatch to ${audienceSize} ${audienceSize === 1 ? "person" : "people"}.`, confirmLabel: "Send Now" }))) return;
     setSending(true);
     const id = await createCampaign();
     if (!id) { setSending(false); return; }

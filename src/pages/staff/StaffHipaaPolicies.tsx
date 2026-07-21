@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Download, FileText, CheckCircle2, Archive, History, Save, Plus, Search } from "lucide-react";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ui/confirm";
 
 type Policy = {
   id: string;
@@ -157,7 +158,7 @@ export default function StaffHipaaPolicies() {
 
   const approve = async () => {
     if (!draft) return;
-    if (!confirm(`Approve "${draft.title}" as version ${draft.version + 1}? An immutable snapshot will be recorded.`)) return;
+    if (!(await confirmDialog({ title: `Approve "${draft.title}" as v${draft.version + 1}?`, description: "An immutable version snapshot will be recorded for HIPAA audit evidence.", confirmLabel: "Approve Version" }))) return;
     setSaving(true);
     let user: any = null;
     try {
@@ -201,7 +202,8 @@ export default function StaffHipaaPolicies() {
   };
 
   const archive = async () => {
-    if (!draft || !confirm("Archive this policy?")) return;
+    if (!draft) return;
+    if (!(await confirmDialog({ title: "Archive this policy?", description: "This policy will be moved to archived status.", destructive: true, confirmLabel: "Archive Policy" }))) return;
     try {
       await supabase.from("hipaa_policies" as any).update({ status: "archived" }).eq("id", draft.id);
     } catch (e) {}

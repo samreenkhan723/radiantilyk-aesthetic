@@ -12,6 +12,8 @@ import { type CardOnFileHandle } from "@/components/CardOnFile";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 import { buildPayloadFor, type CompactValue } from "@/components/CompactConsentCard";
+import { formatPhone10 } from "@/lib/formatPhone";
+
 import { functionErrorMessage } from "@/lib/functionError";
 
 import type { Step, Category, Service, Location, Staff, ProviderRow, ConsentForm } from "./book/types";
@@ -30,11 +32,13 @@ const StepFallback = () => (
   </div>
 );
 
+import { formatPhone10 } from "@/lib/formatPhone";
+
 const detailsSchema = z.object({
   firstName: z.string().trim().min(1, "Required").max(60),
   lastName: z.string().trim().min(1, "Required").max(60),
   email: z.string().trim().email("Invalid email").max(120),
-  phone: z.string().trim().min(7, "Required").max(20),
+  phone: z.string().trim().refine(v => v.replace(/\D/g, "").length === 10, "Phone number must be 10 digits"),
   dob: z.string().optional(),
   notes: z.string().max(1000).optional(),
   nppAck: z.literal(true, { errorMap: () => ({ message: "Required to book" }) }),
@@ -131,8 +135,7 @@ const Book = () => {
       if (qService) setServiceIds([qService]);
       if (qLocation) setLocationId(qLocation);
       if (qStaff) setStaffId(qStaff);
-      if (qService && qLocation && qStaff) setStep(3);
-      else if (qService) setStep(2);
+      setStep(1);
 
       // Prefill client details from query params (staff "Book for client" flow)
       const qFirst = searchParams.get("first");
@@ -191,14 +194,14 @@ const Book = () => {
         } catch {}
       }
 
-      // Restore mid-flow draft if there is one and the user didn't deep-link
+      // Restore mid-flow draft selections if there is one
       const hadQueryDeepLink = !!(searchParams.get("service") || searchParams.get("location") || searchParams.get("staff") || searchParams.get("reschedule"));
       if (!hadQueryDeepLink) {
         try {
           const raw = localStorage.getItem("rka_book_draft");
           if (raw) {
             const d = JSON.parse(raw);
-            // Only restore if recent (< 7 days) and not already completed
+            // Only restore selections if recent (< 7 days) and not already completed
             if (d && d.when && Date.now() - d.when < 7 * 24 * 60 * 60 * 1000) {
               if (Array.isArray(d.serviceIds) && d.serviceIds.length) setServiceIds(d.serviceIds);
               if (d.locationId) setLocationId(d.locationId);
@@ -206,10 +209,8 @@ const Book = () => {
               if (d.date) setDate(new Date(d.date));
               if (d.slot) setSlot(d.slot);
               if (d.client) setClient(prev => ({ ...prev, ...d.client }));
-              const restoreStep = (d.step && d.step >= 1 && d.step <= 4 ? d.step : 1) as Step;
-              setStep(restoreStep);
-              setDraftBanner({ when: d.when, step: restoreStep });
-              setDraftRestored(true);
+              // Always start from Step 1 per design requirement
+              setStep(1);
             }
           }
         } catch {}
@@ -336,13 +337,19 @@ const Book = () => {
   const goNext = () => setStep((s) => (Math.min(5, s + 1) as Step));
   const goBack = () => setStep((s) => (Math.max(1, s - 1) as Step));
 
-  // Guard: if we land on step 5 without a time slot picked, bounce back to date/time.
+  // Guard: Users can only proceed to next step after completing the current step
   useEffect(() => {
-    if (step === 5 && !slot) {
-      toast.error("Please pick a date and time first");
+    if (loading) return;
+    if (step > 1 && serviceIds.length === 0) {
+      setStep(1);
+    } else if (step > 2 && (!locationId || !staffId)) {
+      setStep(2);
+    } else if (step > 3 && (!date || !slot)) {
       setStep(3);
+    } else if (step > 4 && (!client.firstName || !client.lastName || !client.email || !client.phone || !client.nppAck)) {
+      setStep(4);
     }
-  }, [step, slot]);
+  }, [step, serviceIds, locationId, staffId, date, slot, client, loading]);
 
   const goToConsents = () => {
     const parsed = detailsSchema.safeParse(client);

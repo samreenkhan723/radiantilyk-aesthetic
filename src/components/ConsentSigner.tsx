@@ -305,13 +305,18 @@ export const ConsentSigner = ({ form, defaultName, value, onChange }: Props) => 
                     <Eraser className="h-3 w-3" /> Clear
                   </button>
                 </div>
-                <div ref={containerRef} className="rounded-lg border border-border bg-background touch-none">
+                <div ref={containerRef} className="rounded-lg border border-border bg-background touch-none overflow-hidden select-none">
                   <SignatureCanvas
                     ref={sigRef}
-                    penColor="hsl(var(--foreground))"
+                    penColor="#0f172a"
+                    minWidth={1.5}
+                    maxWidth={3.5}
                     onBegin={lockScroll}
                     onEnd={handleEnd}
-                    canvasProps={{ className: "w-full h-40" }}
+                    canvasProps={{
+                      className: "w-full h-40 cursor-crosshair block",
+                      style: { touchAction: "none" }
+                    }}
                   />
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1.5">

@@ -70,78 +70,89 @@ export function MyChartTimelineCard() {
     let cancel = false;
     (async () => {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      const e = session?.user?.email?.toLowerCase();
-      if (!e) { if (!cancel) { setLoading(false); } return; }
-      setEmail(e);
+      try {
+        const session = await getClientSession();
+        const e = session?.user?.email?.toLowerCase();
+        if (!e) return;
+        setEmail(e);
 
-      const { data: notes } = await supabase
-        .from("clinical_notes")
-        .select("id, created_at, category, service_name, provider_name, status")
-        .ilike("client_email", e)
-        .in("status", ["signed", "cosigned", "locked"])
-        .order("created_at", { ascending: false })
-        .limit(60);
+        const { data: notes } = await supabase
+          .from("clinical_notes")
+          .select("id, created_at, category, service_name, provider_name, status")
+          .ilike("client_email", e)
+          .in("status", ["signed", "cosigned", "locked"])
+          .order("created_at", { ascending: false })
+          .limit(60);
 
-      const ids = (notes ?? []).map((n: any) => n.id);
-      if (ids.length === 0) { if (!cancel) { setRows([]); setLoading(false); } return; }
-
-      const [neuro, filler, energy, wellness, sharedPhotos] = await Promise.all([
-        supabase.from("clinical_note_neurotoxin").select("clinical_note_id, product, total_units, lot_number, expiration_date").in("clinical_note_id", ids),
-        supabase.from("clinical_note_filler").select("clinical_note_id, product, syringes_used, areas, lot_entries").in("clinical_note_id", ids),
-        supabase.from("clinical_note_energy").select("clinical_note_id, device, areas").in("clinical_note_id", ids),
-        supabase.from("clinical_note_wellness").select("clinical_note_id, product, dose, service_type, lot_number, expiration_date").in("clinical_note_id", ids),
-        supabase.from("clinical_photo_meta")
-          .select("storage_path, clinical_note_id")
-          .in("clinical_note_id", ids)
-          .eq("is_shared_with_patient", true),
-      ]);
-      const neuroMap = new Map<string, any>((neuro.data ?? []).map((r: any) => [r.clinical_note_id, r]));
-      const fillerMap = new Map<string, any>((filler.data ?? []).map((r: any) => [r.clinical_note_id, r]));
-      const energyMap = new Map<string, any>((energy.data ?? []).map((r: any) => [r.clinical_note_id, r]));
-      const wellMap = new Map<string, any>((wellness.data ?? []).map((r: any) => [r.clinical_note_id, r]));
-
-      // Sign URLs for shared photos in parallel (capped to avoid floods).
-      const photosByNote = new Map<string, string[]>();
-      const capped = (sharedPhotos.data ?? []).slice(0, 200);
-      await Promise.all(capped.map(async (p: any) => {
-        const { data } = await supabase.storage.from("clinical-photos").createSignedUrl(p.storage_path, 600);
-        if (!data?.signedUrl) return;
-        const arr = photosByNote.get(p.clinical_note_id) ?? [];
-        arr.push(data.signedUrl);
-        photosByNote.set(p.clinical_note_id, arr);
-      }));
-
-      const entries: Entry[] = (notes ?? []).map((n: any) => {
-        const base: Entry = {
-          id: n.id, date: n.created_at, category: n.category,
-          service: n.service_name, provider: n.provider_name, lots: [],
-          sharedPhotoUrls: photosByNote.get(n.id) ?? [],
-        };
-        const nx = neuroMap.get(n.id);
-        if (nx) {
-          base.product = nx.product; base.units = Number(nx.total_units ?? 0);
-          if (nx.lot_number) base.lots.push({ lot: nx.lot_number, exp: nx.expiration_date });
+        const ids = (notes ?? []).map((n: any) => n.id);
+        if (ids.length === 0) {
+          if (!cancel) setRows([]);
+          return;
         }
-        const fx = fillerMap.get(n.id);
-        if (fx) {
-          base.product = fx.product; base.syringes = Number(fx.syringes_used ?? 0); base.areas = fx.areas;
-          for (const l of (fx.lot_entries ?? []) as any[]) {
-            if (l?.lot) base.lots.push({ lot: l.lot, exp: l.exp });
+
+        const [neuro, filler, energy, wellness, sharedPhotos] = await Promise.all([
+          supabase.from("clinical_note_neurotoxin" as any).select("clinical_note_id, product, total_units, lot_number, expiration_date").in("clinical_note_id", ids),
+          supabase.from("clinical_note_filler" as any).select("clinical_note_id, product, syringes_used, areas, lot_entries").in("clinical_note_id", ids),
+          supabase.from("clinical_note_energy" as any).select("clinical_note_id, device, areas").in("clinical_note_id", ids),
+          supabase.from("clinical_note_wellness" as any).select("clinical_note_id, product, dose, service_type, lot_number, expiration_date").in("clinical_note_id", ids),
+          supabase.from("clinical_photo_meta" as any)
+            .select("storage_path, clinical_note_id")
+            .in("clinical_note_id", ids)
+            .eq("is_shared_with_patient", true),
+        ]);
+        const neuroMap = new Map<string, any>((neuro.data ?? []).map((r: any) => [r.clinical_note_id, r]));
+        const fillerMap = new Map<string, any>((filler.data ?? []).map((r: any) => [r.clinical_note_id, r]));
+        const energyMap = new Map<string, any>((energy.data ?? []).map((r: any) => [r.clinical_note_id, r]));
+        const wellMap = new Map<string, any>((wellness.data ?? []).map((r: any) => [r.clinical_note_id, r]));
+
+        // Sign URLs for shared photos in parallel (capped to avoid floods).
+        const photosByNote = new Map<string, string[]>();
+        const capped = (sharedPhotos.data ?? []).slice(0, 200);
+        await Promise.all(capped.map(async (p: any) => {
+          try {
+            const { data } = await supabase.storage.from("clinical-photos").createSignedUrl(p.storage_path, 600);
+            if (!data?.signedUrl) return;
+            const arr = photosByNote.get(p.clinical_note_id) ?? [];
+            arr.push(data.signedUrl);
+            photosByNote.set(p.clinical_note_id, arr);
+          } catch {}
+        }));
+
+        const entries: Entry[] = (notes ?? []).map((n: any) => {
+          const base: Entry = {
+            id: n.id, date: n.created_at, category: n.category,
+            service: n.service_name, provider: n.provider_name, lots: [],
+            sharedPhotoUrls: photosByNote.get(n.id) ?? [],
+          };
+          const nx = neuroMap.get(n.id);
+          if (nx) {
+            base.product = nx.product; base.units = Number(nx.total_units ?? 0);
+            if (nx.lot_number) base.lots.push({ lot: nx.lot_number, exp: nx.expiration_date });
           }
-        }
-        const ex = energyMap.get(n.id);
-        if (ex) { base.device = ex.device; base.areas = ex.areas; }
-        const wx = wellMap.get(n.id);
-        if (wx) {
-          base.product = wx.product; base.dose = wx.dose;
-          base.service = base.service ?? wx.service_type;
-          if (wx.lot_number) base.lots.push({ lot: wx.lot_number, exp: wx.expiration_date });
-        }
-        return base;
-      });
+          const fx = fillerMap.get(n.id);
+          if (fx) {
+            base.product = fx.product; base.syringes = Number(fx.syringes_used ?? 0); base.areas = fx.areas;
+            for (const l of (fx.lot_entries ?? []) as any[]) {
+              if (l?.lot) base.lots.push({ lot: l.lot, exp: l.exp });
+            }
+          }
+          const ex = energyMap.get(n.id);
+          if (ex) { base.device = ex.device; base.areas = ex.areas; }
+          const wx = wellMap.get(n.id);
+          if (wx) {
+            base.product = wx.product; base.dose = wx.dose;
+            base.service = base.service ?? wx.service_type;
+            if (wx.lot_number) base.lots.push({ lot: wx.lot_number, exp: wx.expiration_date });
+          }
+          return base;
+        });
 
-      if (!cancel) { setRows(entries); setLoading(false); }
+        if (!cancel) setRows(entries);
+      } catch (err) {
+        console.warn("Chart load error:", err);
+      } finally {
+        if (!cancel) setLoading(false);
+      }
     })();
     return () => { cancel = true; };
   }, []);
