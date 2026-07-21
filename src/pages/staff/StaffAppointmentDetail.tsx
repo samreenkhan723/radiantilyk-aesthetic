@@ -128,6 +128,18 @@ export default function StaffAppointmentDetail() {
         .select("consent_form_id, signed, consent_forms!inner(is_active, is_optional, version)")
         .eq("appointment_id", id),
     ]);
+
+    let staffInfo = st;
+    if (!staffInfo) {
+      const unified = await fetchUnifiedStaffMembers();
+      const found = unified.find(u => u.id === a.staff_id || u.full_name.toLowerCase().includes((a.staff_id || "").toLowerCase()));
+      if (found) {
+        staffInfo = { full_name: found.full_name, title: found.title, email: found.email };
+      } else {
+        staffInfo = { full_name: "Staff Provider", title: "Provider", email: null };
+      }
+    }
+
     const svcIds = [...new Set((apsv ?? []).map((r: any) => r.service_id))];
     const svcNameMap: Record<string, { name: string; duration_minutes: number }> = {};
     if (svcIds.length) {
@@ -139,7 +151,7 @@ export default function StaffAppointmentDetail() {
       name: svcNameMap[r.service_id]?.name ?? "Service",
       duration_minutes: r.duration_minutes ?? svcNameMap[r.service_id]?.duration_minutes ?? 0,
     }));
-    setMeta({ service: s, staff: st, location: l, allServices });
+    setMeta({ service: s, staff: staffInfo, location: l, allServices });
     setAudit(hist ?? []);
 
     // Cross-check with consent_signatures to avoid relying solely on the signed flag,
