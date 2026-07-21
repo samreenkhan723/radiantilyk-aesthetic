@@ -6,7 +6,7 @@ import rkaLogo from "@/assets/rka-logo.webp";
 import ThemeToggle from "@/components/ThemeToggle";
 import NewsletterSignup from "@/components/NewsletterSignup";
 
-export const SiteHeader = () => {
+export const SiteHeader = ({ isPortal = false }: { isPortal?: boolean }) => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   useEffect(() => { setOpen(false); }, [location.pathname]);
@@ -57,10 +57,13 @@ export const SiteHeader = () => {
           </div>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm">
-          <NavLink to="/" end className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Home</NavLink>
-          <NavLink to="/services" className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Services & Pricing</NavLink>
-          
-          <NavLink to="/account" className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>My Account</NavLink>
+          {!isPortal && (
+            <>
+              <NavLink to="/" end className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Home</NavLink>
+              <NavLink to="/services" className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Services & Pricing</NavLink>
+              <NavLink to="/account" className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>My Account</NavLink>
+            </>
+          )}
           <ThemeToggle />
           <NavLink to="/book" className="rounded-full bg-primary px-5 py-2 text-primary-foreground hover:opacity-90 transition shadow-soft">Book Appointment</NavLink>
         </nav>
@@ -82,11 +85,14 @@ export const SiteHeader = () => {
       {open && (
         <div className="md:hidden border-t border-border bg-background">
           <nav className="container mx-auto px-4 py-3 flex flex-col text-sm">
-            <NavLink to="/services" className="py-3 border-b border-border">Services & Pricing</NavLink>
-            
-            <NavLink to="/account" className="py-3 border-b border-border">My Account</NavLink>
+            {!isPortal && (
+              <>
+                <NavLink to="/services" className="py-3 border-b border-border">Services & Pricing</NavLink>
+                <NavLink to="/account" className="py-3 border-b border-border">My Account</NavLink>
+                <NavLink to="/faq" className="py-3 border-b border-border">FAQ</NavLink>
+              </>
+            )}
             <NavLink to="/book" className="py-3 border-b border-border">Book Appointment</NavLink>
-            <NavLink to="/faq" className="py-3 border-b border-border">FAQ</NavLink>
 
             <a href="tel:4083511873" className="py-3 flex items-center gap-2 text-muted-foreground border-b border-border"><Phone className="h-3.5 w-3.5" /> Call 408 · 351 · 1873</a>
             <a href="sms:+14083511873" className="py-3 flex items-center gap-2 text-muted-foreground border-b border-border">💬 Text us</a>

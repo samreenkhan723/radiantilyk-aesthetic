@@ -2,9 +2,9 @@ import { confirmDialog } from "@/components/ui/confirm";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,8 +14,9 @@ import {
   Loader2, Calendar, MapPin, FileText, LogOut, Plus, FileCheck2,
   Pencil, MessageSquare, LayoutDashboard, ShieldCheck,
   CreditCard, Download, FileEdit, Bell, User, Lock, HelpCircle, Phone,
-  Clock, CheckCircle2
+  Clock, CheckCircle2, Menu
 } from "lucide-react";
+import rkaLogo from "@/assets/rka-logo.webp";
 
 import { SmsThread } from "@/components/messaging/SmsThread";
 import { formatPhone10 } from "@/lib/formatPhone";
@@ -96,6 +97,7 @@ export default function ClientAccount() {
   const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", phone: "", emergencyContact: "" });
   const [passwordForm, setPasswordForm] = useState({ newPassword: "", confirmPassword: "" });
   const [updatingPass, setUpdatingPass] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const tabParam = (searchParams.get("tab") ?? "dashboard") as TabKey;
   const activeTab: TabKey = (TABS as readonly string[]).includes(tabParam) ? tabParam : "dashboard";
@@ -247,94 +249,166 @@ export default function ClientAccount() {
   const nextAppt = upcoming[0];
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <SiteHeader />
-      <main className="flex-1 container mx-auto px-4 py-6 md:py-8 max-w-7xl">
-        {/* Top Header Card */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 bg-card border border-border p-5 md:p-6 rounded-2xl shadow-xs">
-          <div className="flex items-center gap-4 min-w-0">
-            {(() => {
-              const rawName = (profile?.first_name || user?.user_metadata?.first_name || "").trim();
-              const lower = rawName.toLowerCase();
-              const displayFirstName = (!rawName || lower === "admin" || lower === "administrator" || lower === "user" || lower === "staff")
-                ? "Patient"
-                : rawName;
-              const displayLastName = profile?.last_name || user?.user_metadata?.last_name || "";
-              const initials = (displayFirstName[0] ?? "P") + (displayLastName[0] ?? "");
-              
-              const rawEmail = (profile?.email || user?.email || "").trim();
-              const displayEmail = (!rawEmail || rawEmail.toLowerCase() === "admin@gmail.com" || rawEmail.toLowerCase().includes("admin"))
-                ? "user@gmail.com"
-                : rawEmail;
-
-              return (
-                <>
-                  <ClientAvatar
-                    clientEmail={displayEmail}
-                    avatarPath={(profile as any)?.avatar_path ?? null}
-                    editable
-                    size={64}
-                    fallbackInitials={initials}
-                    onChange={(path) => setProfile((p: any) => ({ ...(p ?? {}), avatar_path: path }))}
-                  />
-                  <div className="min-w-0 text-left">
-                    <div className="flex items-center gap-2">
-                      <h1 className="font-serif text-2xl md:text-3xl truncate">
-                        Welcome back, {displayFirstName}
-                      </h1>
-                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] hidden md:inline-flex">
-                        <ShieldCheck className="h-3 w-3 mr-1" /> HIPAA Protected
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{displayEmail}</p>
-                  </div>
-                </>
-              );
-            })()}
+    <div className="h-[100dvh] w-full overflow-hidden bg-background flex flex-col">
+      {/* Top Full-width Portal Header Bar */}
+      <header className="w-full border-b border-border bg-card/80 backdrop-blur px-4 md:px-6 py-3 flex items-center justify-between z-30 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="xl:hidden">
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="-ml-2"><Menu className="h-5 w-5" /></Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-72 p-4 flex flex-col justify-between">
+                <div className="overflow-y-auto">
+                  <div className="font-serif text-lg font-bold mb-4">Patient Modules</div>
+                  <nav className="flex flex-col w-full space-y-1">
+                    {NAV_ITEMS.map((item) => {
+                      const Icon = item.icon;
+                      const isActive = activeTab === item.key;
+                      return (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            onTabChange(item.key);
+                            setMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center px-3 py-2.5 text-xs font-medium rounded-xl transition gap-3 text-left ${
+                            isActive
+                              ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      );
+                    })}
+                  </nav>
+                </div>
+                <div className="pt-3 border-t border-border shrink-0 mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={signOut}
+                  >
+                    <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-          <div className="flex gap-2 shrink-0">
-            <Link to="/book">
-              <Button className="rounded-full gap-1"><Plus className="h-4 w-4" /> Book Visit</Button>
-            </Link>
-            <Button variant="outline" className="rounded-full" onClick={signOut}>
-              <LogOut className="h-4 w-4 mr-1" /> Sign out
-            </Button>
-          </div>
+          
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition">
+            <img src={rkaLogo} alt="Radiantilyk" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover shadow-soft" />
+            <div className="text-left hidden sm:block">
+              <div className="font-serif text-sm leading-tight font-medium">Radiantilyk Aesthetic</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Medspa</div>
+            </div>
+          </Link>
         </div>
 
-        {/* Main Layout: Left Sidebar + Right Content */}
-        <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-            
-            {/* LEFT SIDEBAR NAVIGATION */}
-            <aside className="md:col-span-3 space-y-1 bg-card border border-border p-2.5 rounded-2xl shadow-xs sticky top-6">
-              <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Patient Modules
-              </div>
-              <TabsList className="flex flex-col w-full h-auto bg-transparent p-0 space-y-1">
-                {NAV_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.key;
-                  return (
-                    <TabsTrigger
-                      key={item.key}
-                      value={item.key}
-                      className={`w-full justify-start px-3 py-2.5 text-xs font-medium rounded-xl transition gap-3 text-left ${
-                        isActive
-                          ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                      }`}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </TabsTrigger>
-                  );
-                })}
-              </TabsList>
-            </aside>
+        <div className="flex items-center">
+          <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
+            <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span className="hidden sm:inline">Patient Portal</span>
+            <span className="sm:hidden">Patient</span>
+          </div>
+        </div>
+      </header>
 
-            {/* RIGHT CONTENT AREA */}
-            <div className="md:col-span-9 min-w-0">
+      <Tabs value={activeTab} onValueChange={onTabChange} className="flex-1 flex overflow-hidden min-h-0 w-full">
+        {/* Desktop Sidebar */}
+        <aside className="hidden xl:flex flex-col w-64 border-r border-border bg-card p-4 shrink-0 justify-between">
+          <div className="space-y-4 overflow-y-auto pr-1">
+            <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Patient Modules
+            </div>
+            <TabsList className="flex flex-col w-full h-auto bg-transparent p-0 space-y-1">
+              {NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.key;
+                return (
+                  <TabsTrigger
+                    key={item.key}
+                    value={item.key}
+                    className={`w-full justify-start px-3 py-2.5 text-xs font-medium rounded-xl transition gap-3 text-left ${
+                      isActive
+                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
+          <div className="pt-3 border-t border-border mt-4 shrink-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start text-xs text-muted-foreground hover:text-foreground"
+              onClick={signOut}
+            >
+              <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+            </Button>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 overflow-y-auto bg-background min-w-0 p-4 md:p-6 lg:p-8">
+          <div className="max-w-5xl mx-auto space-y-6 pb-12">
+            {activeTab === "dashboard" && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-card border border-border p-5 md:p-6 rounded-2xl shadow-xs">
+                <div className="flex items-center gap-4 min-w-0">
+                  {(() => {
+                    const rawName = (profile?.first_name || user?.user_metadata?.first_name || "").trim();
+                    const lower = rawName.toLowerCase();
+                    const displayFirstName = (!rawName || lower === "admin" || lower === "administrator" || lower === "user" || lower === "staff")
+                      ? "Patient"
+                      : rawName;
+                    const displayLastName = profile?.last_name || user?.user_metadata?.last_name || "";
+                    const initials = (displayFirstName[0] ?? "P") + (displayLastName[0] ?? "");
+                    
+                    const rawEmail = (profile?.email || user?.email || "").trim();
+                    const displayEmail = (!rawEmail || rawEmail.toLowerCase() === "admin@gmail.com" || rawEmail.toLowerCase().includes("admin"))
+                      ? "user@gmail.com"
+                      : rawEmail;
+
+                    return (
+                      <>
+                        <ClientAvatar
+                          clientEmail={displayEmail}
+                          avatarPath={(profile as any)?.avatar_path ?? null}
+                          editable
+                          size={64}
+                          fallbackInitials={initials}
+                          onChange={(path) => setProfile((p: any) => ({ ...(p ?? {}), avatar_path: path }))}
+                        />
+                        <div className="min-w-0 text-left">
+                          <div className="flex items-center gap-2">
+                            <h1 className="font-serif text-2xl md:text-3xl truncate">
+                              Welcome back, {displayFirstName}
+                            </h1>
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] hidden md:inline-flex">
+                              <ShieldCheck className="h-3 w-3 mr-1" /> HIPAA Protected
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{displayEmail}</p>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Link to="/book">
+                    <Button className="rounded-full gap-1"><Plus className="h-4 w-4" /> Book Visit</Button>
+                  </Link>
+                </div>
+              </div>
+            )}
               
               {/* 1. DASHBOARD OVERVIEW */}
               <TabsContent value="dashboard" className="mt-0 space-y-6">
@@ -657,11 +731,9 @@ export default function ClientAccount() {
                   </div>
                 </div>
               </TabsContent>
-            </div>
           </div>
-        </Tabs>
-      </main>
-      <SiteFooter />
+        </main>
+      </Tabs>
     </div>
   );
 }
