@@ -36,8 +36,7 @@ export function useIdleLogout(enabled: boolean) {
     };
 
     const events = ["mousemove", "mousedown", "keydown", "scroll", "touchstart"] as const;
-    events.forEach((e) => window.addEventListener(e, bump, { passive: true }));
-    document.addEventListener("visibilitychange", bump);
+    events.forEach((e) => window.addEventListener(e, bump, { passive: true, capture: true }));
 
     let isLoggingOut = false;
     const interval = window.setInterval(async () => {
@@ -68,8 +67,7 @@ export function useIdleLogout(enabled: boolean) {
     }, 1000);
 
     return () => {
-      events.forEach((e) => window.removeEventListener(e, bump));
-      document.removeEventListener("visibilitychange", bump);
+      events.forEach((e) => window.removeEventListener(e, bump, { capture: true }));
       window.clearInterval(interval);
     };
   }, [enabled]);
