@@ -25,6 +25,11 @@ export function setDemoAuthSession(email: string, roles: AppRole[], staffId?: st
   const KIEM_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
   const STAFF_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
   const targetId = staffId || (roles.includes("admin") ? KIEM_ID : STAFF_ID);
+  
+  const isClient = roles.length === 0 || email === "user@gmail.com";
+  const firstName = isClient ? "Patient" : (roles.includes("admin") ? "Administrator" : "Staff");
+  const lastName = isClient ? "User" : (roles.includes("admin") ? "Kiem" : "Member");
+
   const demoData = {
     user: {
       id: targetId,
@@ -33,17 +38,21 @@ export function setDemoAuthSession(email: string, roles: AppRole[], staffId?: st
       role: "authenticated",
       email_confirmed_at: new Date().toISOString(),
       app_metadata: { provider: "email", providers: ["email"] },
-      user_metadata: { first_name: email.split("@")[0] },
+      user_metadata: { first_name: firstName, last_name: lastName },
       created_at: new Date().toISOString(),
     } as User,
     roles,
     staffId: targetId,
   };
-  localStorage.setItem("rka_demo_session", JSON.stringify(demoData));
+
+  const jsonStr = JSON.stringify(demoData);
+  sessionStorage.setItem("rka_demo_session", jsonStr);
+  localStorage.setItem("rka_demo_session", jsonStr);
   window.dispatchEvent(new Event("rka_demo_auth_change"));
 }
 
 export function clearDemoAuthSession() {
+  sessionStorage.removeItem("rka_demo_session");
   localStorage.removeItem("rka_demo_session");
   window.dispatchEvent(new Event("rka_demo_auth_change"));
 }
@@ -56,7 +65,7 @@ export function useAuth(): AuthState {
 
   useEffect(() => {
     const checkDemo = () => {
-      const raw = localStorage.getItem("rka_demo_session");
+      const raw = sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session");
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
@@ -83,7 +92,7 @@ export function useAuth(): AuthState {
     window.addEventListener("rka_demo_auth_change", handleDemoChange);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, s) => {
-      if (localStorage.getItem("rka_demo_session")) return;
+      if (sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session")) return;
       setSession(s);
       if (s?.user) {
         setTimeout(() => loadProfile(s.user.id), 0);
@@ -96,7 +105,7 @@ export function useAuth(): AuthState {
 
     if (!checkDemo()) {
       supabase.auth.getSession().then(({ data: { session: s } }) => {
-        if (localStorage.getItem("rka_demo_session")) return;
+        if (sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session")) return;
         setSession(s);
         if (s?.user) loadProfile(s.user.id);
         else setLoading(false);

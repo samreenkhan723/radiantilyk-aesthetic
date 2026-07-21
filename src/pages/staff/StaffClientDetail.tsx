@@ -24,6 +24,7 @@ import { ClientTreatmentPlansCard } from "@/components/staff/ClientTreatmentPlan
 import { ClientUploadedPhotosCard } from "@/components/staff/ClientUploadedPhotosCard";
 import { InternalStaffNoteCard } from "@/components/clinical/InternalStaffNoteCard";
 import { ClientPerksCard } from "@/components/staff/ClientPerksCard";
+import { ClientExternalDisclosuresCard } from "@/components/staff/ClientExternalDisclosuresCard";
 import { useAuth } from "@/hooks/useAuth";
 import { parseLocalDate } from "@/lib/utils";
 
@@ -633,6 +634,7 @@ export default function StaffClientDetail() {
           <TabsTrigger value="consents" className="rounded-full">Consents ({signed.length})</TabsTrigger>
           <TabsTrigger value="billing" className="rounded-full">Billing ({receipts.length})</TabsTrigger>
           <TabsTrigger value="notes" className="rounded-full">Notes</TabsTrigger>
+          <TabsTrigger value="disclosures" className="rounded-full">HIPAA Disclosures</TabsTrigger>
         </TabsList>
 
         <TabsContent value="history" className="mt-4 space-y-4">
@@ -777,6 +779,10 @@ export default function StaffClientDetail() {
               First seen: {format(new Date(stats.firstSeen), "MMM d, yyyy")}
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="disclosures" className="mt-4 space-y-4">
+          <ClientExternalDisclosuresCard clientEmail={decodedEmail} />
         </TabsContent>
       </Tabs>
 

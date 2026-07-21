@@ -17,37 +17,43 @@ interface Props {
 export function SharedConsentSigner({ defaultName, name, signaturePng, onNameChange, onSignatureChange }: Props) {
   const sigRef = useRef<SignatureCanvas | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [restored, setRestored] = useState(false);
+  const [penColor, setPenColor] = useState("#0f172a");
 
-  // Resize canvas + restore any persisted signature.
-  // IMPORTANT: do NOT re-run when signaturePng changes — assigning canvas.width
-  // wipes the drawing, and we'd then skip the restore (restored=true), causing
-  // the signature to visually disappear right after the user lifts their finger.
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    setPenColor(isDark ? "#f8fafc" : "#0f172a");
+  }, []);
+
   const signatureRef = useRef(signaturePng);
   signatureRef.current = signaturePng;
+
   useEffect(() => {
     const resize = () => {
       const canvas = sigRef.current?.getCanvas();
       const wrap = containerRef.current;
       if (!canvas || !wrap) return;
-      const w = wrap.clientWidth;
+      const w = wrap.clientWidth || 500;
       const h = 224;
       canvas.width = w;
       canvas.height = h;
+
       const png = signatureRef.current;
-      if (png) {
-        sigRef.current?.fromDataURL(png, { width: w, height: h });
-        setRestored(true);
+      if (png && sigRef.current) {
+        try {
+          sigRef.current.fromDataURL(png, { width: w, height: h });
+        } catch {}
       }
     };
-    resize();
+
+    const timer = setTimeout(resize, 50);
     window.addEventListener("resize", resize);
-    return () => window.removeEventListener("resize", resize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", resize);
+    };
   }, []);
 
-
-  // iOS scroll lock while drawing
+  // Scroll lock while drawing
   const scrollYRef = useRef(0);
   const lockScroll = () => {
     scrollYRef.current = window.scrollY;
@@ -70,7 +76,9 @@ export function SharedConsentSigner({ defaultName, name, signaturePng, onNameCha
   const handleEnd = () => {
     unlockScroll();
     if (!sigRef.current || sigRef.current.isEmpty()) return;
-    onSignatureChange(sigRef.current.getCanvas().toDataURL("image/png"));
+    try {
+      onSignatureChange(sigRef.current.getCanvas().toDataURL("image/png"));
+    } catch {}
   };
 
   const clear = () => {
@@ -102,15 +110,18 @@ export function SharedConsentSigner({ defaultName, name, signaturePng, onNameCha
             <Eraser className="h-3 w-3" /> Clear
           </button>
         </div>
-        <div ref={containerRef} className="rounded-lg border border-border bg-background touch-none">
+        <div ref={containerRef} className="rounded-lg border border-border bg-background touch-none overflow-hidden select-none">
           <SignatureCanvas
             ref={sigRef}
-            penColor="hsl(var(--foreground))"
-            minWidth={1.4}
-            maxWidth={2.6}
+            penColor={penColor}
+            minWidth={1.5}
+            maxWidth={3.5}
             onBegin={lockScroll}
             onEnd={handleEnd}
-            canvasProps={{ className: "w-full h-56" }}
+            canvasProps={{
+              className: "w-full h-56 cursor-crosshair block",
+              style: { touchAction: "none" }
+            }}
           />
         </div>
         <p className="text-[11px] text-muted-foreground mt-1.5">

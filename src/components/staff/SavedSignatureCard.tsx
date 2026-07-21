@@ -4,6 +4,7 @@ import { Loader2, Save, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MiniSignaturePad } from "@/components/clinical/MiniSignaturePad";
 import { toast } from "sonner";
+import { confirmDialog } from "@/components/ui/confirm";
 import { format } from "date-fns";
 
 type Props = {
@@ -57,7 +58,7 @@ export function SavedSignatureCard({ staffId, defaultName = "" }: Props) {
   }
 
   async function clear() {
-    if (!confirm("Remove your saved signature? You'll need to draw it again on each chart note.")) return;
+    if (!(await confirmDialog({ title: "Remove saved signature?", description: "You will need to draw your signature again manually on chart notes.", destructive: true, confirmLabel: "Remove Signature" }))) return;
     setSaving(true);
     const { error } = await supabase
       .from("staff_profiles")

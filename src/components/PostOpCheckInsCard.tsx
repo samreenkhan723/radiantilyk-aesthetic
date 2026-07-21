@@ -30,7 +30,7 @@ type Draft = {
 
 export function PostOpCheckInsCard() {
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState<string | null>(null);
   const [appts, setAppts] = useState<ApptLite[]>([]);
   const [services, setServices] = useState<Record<string, string>>({});
   const [existing, setExisting] = useState<Record<string, Existing>>({}); // key = `${appt}:${day}`
@@ -41,34 +41,40 @@ export function PostOpCheckInsCard() {
     let cancel = false;
     (async () => {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      const e = session?.user?.email?.toLowerCase();
-      if (!e) { if (!cancel) setLoading(false); return; }
-      setEmail(e);
+      try {
+        const session = await getClientSession();
+        const e = session?.user?.email?.toLowerCase();
+        if (!e) return;
+        setEmail(e);
 
-      const since = new Date(); since.setDate(since.getDate() - 16);
-      const { data: ap } = await supabase
-        .from("appointments")
-        .select("id, start_at, service_id, status")
-        .ilike("client_email", e)
-        .in("status", ["completed", "arrived", "approved"])
-        .gte("start_at", since.toISOString())
-        .lte("start_at", new Date().toISOString())
-        .order("start_at", { ascending: false });
-      const appts = (ap ?? []).filter((a: any) => differenceInCalendarDays(new Date(), new Date(a.start_at)) >= 1) as ApptLite[];
-      if (!appts.length) { if (!cancel) { setAppts([]); setLoading(false); } return; }
+        const since = new Date(); since.setDate(since.getDate() - 16);
+        const { data: ap } = await supabase
+          .from("appointments")
+          .select("id, start_at, service_id, status")
+          .ilike("client_email", e)
+          .in("status", ["completed", "arrived", "approved"])
+          .gte("start_at", since.toISOString())
+          .lte("start_at", new Date().toISOString())
+          .order("start_at", { ascending: false });
+        const appts = (ap ?? []).filter((a: any) => differenceInCalendarDays(new Date(), new Date(a.start_at)) >= 1) as ApptLite[];
+        if (!appts.length) { if (!cancel) setAppts([]); return; }
 
-      const svcIds = Array.from(new Set(appts.map(a => a.service_id).filter(Boolean)));
-      const [{ data: sv }, { data: chk }] = await Promise.all([
-        supabase.from("services").select("id, name").in("id", svcIds),
-        supabase.from("postop_checkins").select("appointment_id, day_offset, swelling, bruising, pain, photo_path, notes").in("appointment_id", appts.map(a => a.id)),
-      ]);
-      const svcMap: Record<string, string> = {};
-      (sv ?? []).forEach((s: any) => { svcMap[s.id] = s.name; });
-      const ex: Record<string, Existing> = {};
-      (chk ?? []).forEach((c: any) => { ex[`${c.appointment_id}:${c.day_offset}`] = c; });
+        const svcIds = Array.from(new Set(appts.map(a => a.service_id).filter(Boolean)));
+        const [{ data: sv }, { data: chk }] = await Promise.all([
+          supabase.from("services").select("id, name").in("id", svcIds),
+          supabase.from("postop_checkins").select("appointment_id, day_offset, swelling, bruising, pain, photo_path, notes").in("appointment_id", appts.map(a => a.id)),
+        ]);
+        const svcMap: Record<string, string> = {};
+        (sv ?? []).forEach((s: any) => { svcMap[s.id] = s.name; });
+        const ex: Record<string, Existing> = {};
+        (chk ?? []).forEach((c: any) => { ex[`${c.appointment_id}:${c.day_offset}`] = c; });
 
-      if (!cancel) { setAppts(appts); setServices(svcMap); setExisting(ex); setLoading(false); }
+        if (!cancel) { setAppts(appts); setServices(svcMap); setExisting(ex); }
+      } catch (err) {
+        console.warn("PostOp load error:", err);
+      } finally {
+        if (!cancel) setLoading(false);
+      }
     })();
     return () => { cancel = true; };
   }, []);

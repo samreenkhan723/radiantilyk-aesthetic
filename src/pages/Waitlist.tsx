@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Bell, Check, ArrowLeft } from "lucide-react";
+import { formatPhone10 } from "@/lib/formatPhone";
 
 interface Service { id: string; name: string; }
 interface Location { id: string; name: string; city: string; }
@@ -136,7 +137,7 @@ export default function Waitlist() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div><Label>Email *</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-                <div><Label>Mobile phone *</Label><Input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+                <div><Label>Mobile phone (10 digits) *</Label><Input type="tel" placeholder="(555) 000-0000" maxLength={14} value={form.phone} onChange={(e) => setForm({ ...form, phone: formatPhone10(e.target.value) })} /></div>
               </div>
               <div>
                 <Label>Service *</Label>

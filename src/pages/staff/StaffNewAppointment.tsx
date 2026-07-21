@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { CardOnFile, type CardOnFileHandle } from "@/components/CardOnFile";
 import { StaffClientSearch } from "@/components/staff/StaffClientSearch";
 import { toast } from "sonner";
+import { formatPhone10 } from "@/lib/formatPhone";
 
 
 export default function StaffNewAppointment() {
@@ -359,7 +360,7 @@ export default function StaffNewAppointment() {
             <div><Label>First name</Label><Input required value={client.firstName} onChange={(e) => setClient({ ...client, firstName: e.target.value })} className="mt-1.5 h-11" autoComplete="given-name" /></div>
             <div><Label>Last name</Label><Input required value={client.lastName} onChange={(e) => setClient({ ...client, lastName: e.target.value })} className="mt-1.5 h-11" autoComplete="family-name" /></div>
             <div><Label>Email</Label><Input type="email" required value={client.email} onChange={(e) => setClient({ ...client, email: e.target.value })} className="mt-1.5 h-11" autoComplete="email" inputMode="email" /></div>
-            <div><Label>Phone</Label><Input required type="tel" inputMode="tel" autoComplete="tel" value={client.phone} onChange={(e) => setClient({ ...client, phone: e.target.value })} className="mt-1.5 h-11" /></div>
+            <div><Label>Phone (10 digits)</Label><Input required type="tel" inputMode="tel" autoComplete="tel" placeholder="(555) 000-0000" maxLength={14} value={client.phone} onChange={(e) => setClient({ ...client, phone: formatPhone10(e.target.value) })} className="mt-1.5 h-11" /></div>
             <div><Label>Date of birth</Label><Input type="date" value={client.dob} onChange={(e) => setClient({ ...client, dob: e.target.value })} className="mt-1.5 h-11" /></div>
           </div>
           <div>

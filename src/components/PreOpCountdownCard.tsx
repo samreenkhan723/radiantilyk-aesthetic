@@ -40,7 +40,7 @@ function windowLabel(days: number): string | null {
 
 export function PreOpCountdownCard() {
   const [loading, setLoading] = useState(true);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState<string | null>(null);
   const [appts, setAppts] = useState<ApptLite[]>([]);
   const [byAppt, setByAppt] = useState<Record<string, { service: string; items: Item[]; checked: Record<string, boolean> }>>({});
   const [saving, setSaving] = useState<string | null>(null);
@@ -49,47 +49,56 @@ export function PreOpCountdownCard() {
     let cancel = false;
     (async () => {
       setLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      const e = session?.user?.email?.toLowerCase();
-      if (!e) { if (!cancel) setLoading(false); return; }
-      setEmail(e);
+      try {
+        const session = await getClientSession();
+        const e = session?.user?.email?.toLowerCase();
+        if (!e) return;
+        setEmail(e);
 
-      const horizon = new Date(); horizon.setDate(horizon.getDate() + 7);
-      const { data: ap } = await supabase
-        .from("appointments")
-        .select("id, start_at, service_id")
-        .ilike("client_email", e)
-        .in("status", ["pending", "approved"])
-        .gte("start_at", new Date().toISOString())
-        .lte("start_at", horizon.toISOString())
-        .order("start_at");
-      const appts = (ap ?? []) as ApptLite[];
-      if (!appts.length) { if (!cancel) { setAppts([]); setLoading(false); } return; }
+        const horizon = new Date(); horizon.setDate(horizon.getDate() + 7);
+        const { data: ap } = await supabase
+          .from("appointments")
+          .select("id, start_at, service_id")
+          .ilike("client_email", e)
+          .in("status", ["pending", "approved"])
+          .gte("start_at", new Date().toISOString())
+          .lte("start_at", horizon.toISOString())
+          .order("start_at");
+        const appts = (ap ?? []) as ApptLite[];
+        if (!appts.length) {
+          if (!cancel) setAppts([]);
+          return;
+        }
 
-      const serviceIds = Array.from(new Set(appts.map(a => a.service_id).filter(Boolean)));
-      const [{ data: services }, { data: preops }, { data: progress }] = await Promise.all([
-        supabase.from("services").select("id, name").in("id", serviceIds),
-        supabase.from("service_pre_op_instructions").select("service_id, body_markdown").in("service_id", serviceIds),
-        supabase.from("preop_checklist_progress").select("appointment_id, item_key, checked_at").in("appointment_id", appts.map(a => a.id)),
-      ]);
-      const svcName = new Map<string, string>((services ?? []).map((s: any) => [s.id, s.name]));
-      const md = new Map<string, string>((preops ?? []).map((p: any) => [p.service_id, p.body_markdown ?? ""]));
-      const checkedMap: Record<string, Record<string, boolean>> = {};
-      for (const p of (progress ?? []) as any[]) {
-        checkedMap[p.appointment_id] = checkedMap[p.appointment_id] ?? {};
-        if (p.checked_at) checkedMap[p.appointment_id][p.item_key] = true;
+        const serviceIds = Array.from(new Set(appts.map(a => a.service_id).filter(Boolean)));
+        const [{ data: services }, { data: preops }, { data: progress }] = await Promise.all([
+          supabase.from("services").select("id, name").in("id", serviceIds),
+          supabase.from("service_pre_op_instructions" as any).select("service_id, body_markdown").in("service_id", serviceIds),
+          supabase.from("preop_checklist_progress" as any).select("appointment_id, item_key, checked_at").in("appointment_id", appts.map(a => a.id)),
+        ]);
+        const svcName = new Map<string, string>((services ?? []).map((s: any) => [s.id, s.name]));
+        const md = new Map<string, string>((preops ?? []).map((p: any) => [p.service_id, p.body_markdown ?? ""]));
+        const checkedMap: Record<string, Record<string, boolean>> = {};
+        for (const p of (progress ?? []) as any[]) {
+          checkedMap[p.appointment_id] = checkedMap[p.appointment_id] ?? {};
+          if (p.checked_at) checkedMap[p.appointment_id][p.item_key] = true;
+        }
+
+        const map: Record<string, { service: string; items: Item[]; checked: Record<string, boolean> }> = {};
+        for (const a of appts) {
+          const items = parseChecklist(md.get(a.service_id) ?? "");
+          map[a.id] = {
+            service: svcName.get(a.service_id) ?? "Appointment",
+            items,
+            checked: checkedMap[a.id] ?? {},
+          };
+        }
+        if (!cancel) { setAppts(appts); setByAppt(map); }
+      } catch (err) {
+        console.warn("PreOp load error:", err);
+      } finally {
+        if (!cancel) setLoading(false);
       }
-
-      const map: Record<string, { service: string; items: Item[]; checked: Record<string, boolean> }> = {};
-      for (const a of appts) {
-        const items = parseChecklist(md.get(a.service_id) ?? "");
-        map[a.id] = {
-          service: svcName.get(a.service_id) ?? "Appointment",
-          items,
-          checked: checkedMap[a.id] ?? {},
-        };
-      }
-      if (!cancel) { setAppts(appts); setByAppt(map); setLoading(false); }
     })();
     return () => { cancel = true; };
   }, []);

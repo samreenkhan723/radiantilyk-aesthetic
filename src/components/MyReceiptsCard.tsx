@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Receipt, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 
+import { getClientSession } from "@/hooks/useClientAuth";
+
 interface Sale {
   id: string;
   paid_at: string | null;
@@ -16,7 +18,7 @@ export default function MyReceiptsCard() {
   const [rows, setRows] = useState<Sale[] | null>(null);
   useEffect(() => {
     (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const session = await getClientSession();
       if (!session?.user?.email) { setRows([]); return; }
       const { data } = await supabase
         .from("sales")

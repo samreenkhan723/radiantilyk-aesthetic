@@ -39,8 +39,8 @@ function formatDay(d: Date) {
 }
 
 export function SmsThread({
-  clientEmail,
-  viewerRole,
+  clientEmail = "",
+  viewerRole = "client",
   appointmentId = null,
   composerDisabledReason = null,
   compact = false,
@@ -51,7 +51,7 @@ export function SmsThread({
   const [sending, setSending] = useState(false);
   const [snippets, setSnippets] = useState<Array<{ id: string; label: string; body: string; category: string }>>([]);
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const emailKey = clientEmail.toLowerCase();
+  const emailKey = (clientEmail || "").toLowerCase();
 
   // Load snippets (staff only)
   useEffect(() => {

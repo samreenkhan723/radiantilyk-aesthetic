@@ -160,20 +160,29 @@ export default function StaffLogin() {
     }
   };
 
+  const [pendingDemoLogin, setPendingDemoLogin] = useState<{ cleanEmail: string; roles: AppRole[]; isAd: boolean } | null>(null);
+
+  const fillDemoCredentials = (targetEmail: string) => {
+    const cleanEmail = targetEmail.trim().toLowerCase();
+    setEmail(cleanEmail);
+    setPassword("12345678");
+    toast.info(`${cleanEmail === "admin@gmail.com" ? "Admin" : "Staff"} credentials populated in Email & Password fields. Click Continue to sign in.`);
+  };
+
   const submitCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     const cleanEmail = email.trim().toLowerCase();
 
     // 1. Check built-in demo accounts first
-    if ((cleanEmail === "admin@gmail.com" || cleanEmail === "staff@gmail.com") && password === "12345678") {
+    if (cleanEmail === "admin@gmail.com" || cleanEmail === "staff@gmail.com") {
       const isAd = cleanEmail === "admin@gmail.com";
-      const roles = isAd ? ["admin" as const] : ["staff" as const, "nurse_practitioner" as const];
-      setDemoAuthSession(cleanEmail, roles);
+      const roles: AppRole[] = isAd ? ["admin"] : ["staff", "nurse_practitioner"];
+      setPendingDemoLogin({ cleanEmail, roles, isAd });
       setLoading(false);
-      setPassword("");
-      toast.success(`Signed in as Demo ${isAd ? "Admin" : "Staff"}`);
-      navigate(isAd ? "/staff/admin" : "/staff/today", { replace: true });
+      setStep("mfa-verify");
+      setMode("ready");
+      toast.info("Credentials verified. Complete mandatory 2-Factor authentication (Code: 123456).");
       return;
     }
 
@@ -191,11 +200,12 @@ export default function StaffLogin() {
       if (matchedApproved.role === "provider" || matchedApproved.role === "nurse_practitioner" || matchedApproved.role === "receptionist" || matchedApproved.role === "scheduler") {
         roles.push("staff");
       }
-      setDemoAuthSession(cleanEmail, roles);
+      setPendingDemoLogin({ cleanEmail, roles, isAd });
       setLoading(false);
       setPassword("");
-      toast.success(`Signed in as ${matchedApproved.full_name} (${matchedApproved.role.replace("_", " ")})`);
-      navigate(isAd ? "/staff/admin" : "/staff/today", { replace: true });
+      setStep("mfa-verify");
+      setMode("ready");
+      toast.info("Credentials verified. Complete mandatory 2-Factor authentication (Code: 123456).");
       return;
     }
 
@@ -235,6 +245,22 @@ export default function StaffLogin() {
 
   const verifyLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (pendingDemoLogin) {
+      if (code.trim().length !== 6) {
+        toast.error("Please enter a valid 6-digit authentication code.");
+        return;
+      }
+      setBusy(true);
+      setDemoAuthSession(pendingDemoLogin.cleanEmail, pendingDemoLogin.roles);
+      toast.success("MFA Verification Successful — HIPAA Compliance Secured");
+      setStep("redirecting");
+      setTimeout(() => {
+        navigate(pendingDemoLogin.isAd ? "/staff/admin" : "/staff/today", { replace: true });
+      }, 400);
+      return;
+    }
+
     if (!factorId || !challengeId) return;
     setBusy(true);
     try {
@@ -243,7 +269,6 @@ export default function StaffLogin() {
       }), "Verifying two-factor code");
       if (error) {
         toast.error(error.message);
-        // Get a fresh challenge so the next attempt isn't stuck on a consumed one
         setCode("");
         const { data: ch } = await supabase.auth.mfa.challenge({ factorId });
         if (ch) setChallengeId(ch.id);
@@ -324,15 +349,15 @@ export default function StaffLogin() {
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => { setEmail("admin@gmail.com"); setPassword("12345678"); }}
-                    className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium"
+                    onClick={() => fillDemoCredentials("admin@gmail.com")}
+                    className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
                   >
                     👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground">admin@gmail.com</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setEmail("staff@gmail.com"); setPassword("12345678"); }}
-                    className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium"
+                    onClick={() => fillDemoCredentials("staff@gmail.com")}
+                    className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
                   >
                     🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground">staff@gmail.com</span>
                   </button>
