@@ -169,26 +169,7 @@ export default function StaffLayout() {
     ];
   }, [isScheduler, isReceptionist, isStaff, isNP, pendingCount, unreadSms]);
 
-  const activeGroupKey = useMemo(() => {
-    for (const g of staffGroups) {
-      if (g.children.some(c => location.pathname === c.to || location.pathname.startsWith(c.to + "/"))) {
-        return g.key;
-      }
-    }
-    return staffGroups[0]?.key;
-  }, [staffGroups, location.pathname]);
 
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    if (activeGroupKey) {
-      setOpenGroups(prev => ({ ...prev, [activeGroupKey]: true }));
-    }
-  }, [activeGroupKey]);
-
-  const toggleGroup = (key: string) => {
-    setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
-  };
 
   if (loading || (user && !mfaChecked)) {
     return (
@@ -263,64 +244,52 @@ export default function StaffLayout() {
           })}
         </div>
       ) : (
-        staffGroups.filter(g => g.show).map((g) => {
-          const isOpen = !!openGroups[g.key];
-          const GIcon = g.icon;
-          const visibleChildren = g.children.filter(c => c.show !== false);
-          if (visibleChildren.length === 0) return null;
-          return (
-            <div key={g.key} className="space-y-0.5">
-              <button
-                onClick={() => toggleGroup(g.key)}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition group"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <GIcon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground transition" />
-                  <span className="font-medium truncate">{g.label}</span>
+        <div className="space-y-5">
+          {staffGroups.filter(g => g.show).map((g) => {
+            const visibleChildren = g.children.filter(c => c.show !== false);
+            if (visibleChildren.length === 0) return null;
+            return (
+              <div key={g.key} className="space-y-1.5">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 mb-2 flex items-center justify-between">
+                  <span>{g.label}</span>
                   {g.badge ? (
-                    <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-primary/15 text-primary font-bold shrink-0">
+                    <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-primary/15 text-primary font-bold shrink-0">
                       {g.badge}
                     </span>
                   ) : null}
                 </div>
-                {isOpen ? <ChevronDown className="h-3.5 w-3.5 shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 shrink-0" />}
-              </button>
-
-              {isOpen && (
-                <div className="pl-6 space-y-0.5 border-l border-border/60 ml-4 my-1">
-                  {visibleChildren.map((c) => {
-                    const CIcon = c.icon;
-                    const active = isSubActive(c.to);
-                    return (
-                      <NavLink
-                        key={c.to}
-                        to={c.to}
-                        className={() =>
-                          `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition ${
-                            active
-                              ? "bg-primary text-primary-foreground font-semibold"
-                              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                          }`
-                        }
-                        onClick={() => setOpen(false)}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <CIcon className="h-3.5 w-3.5 shrink-0" />
-                          <span className="truncate">{c.label}</span>
-                        </div>
-                        {c.badge ? (
-                          <span className="px-1.5 py-0.2 rounded-full text-[9px] bg-primary/15 text-primary font-bold shrink-0">
-                            {c.badge}
-                          </span>
-                        ) : null}
-                      </NavLink>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })
+                {visibleChildren.map((c) => {
+                  const CIcon = c.icon;
+                  const active = isSubActive(c.to);
+                  return (
+                    <NavLink
+                      key={c.to}
+                      to={c.to}
+                      onClick={() => setOpen(false)}
+                      className={() =>
+                        `flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition ${
+                          active
+                            ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                        }`
+                      }
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <CIcon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{c.label}</span>
+                      </div>
+                      {c.badge ? (
+                        <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-primary/15 text-primary font-bold shrink-0">
+                          {c.badge}
+                        </span>
+                      ) : null}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <div className="pt-3 mt-4 border-t border-border space-y-0.5">
