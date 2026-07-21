@@ -26,7 +26,7 @@ export function StaffBottomNav({
 
   return (
     <nav
-      className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border pb-[env(safe-area-inset-bottom)]"
+      className="xl:hidden fixed bottom-0 inset-x-0 z-30 bg-background/95 backdrop-blur border-t border-border pb-[env(safe-area-inset-bottom)]"
       aria-label="Primary navigation"
     >
       <ul className="grid grid-cols-5">

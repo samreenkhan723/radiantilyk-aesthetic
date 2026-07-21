@@ -158,8 +158,8 @@ export default function StaffAdminHub() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
         <div>
-          <div className="flex items-center gap-3">
-            <h1 className="font-serif text-3xl">Admin Dashboard</h1>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <h1 className="font-serif text-2xl sm:text-3xl">Admin Dashboard</h1>
             <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-medium px-2.5 py-0.5">
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Enterprise HIPAA Platform
             </Badge>
@@ -227,13 +227,13 @@ export default function StaffAdminHub() {
       {/* 2. Security Alerts */}
       <section className="space-y-3">
         <h2 className="font-serif text-xl">Security Alerts</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex items-start gap-3">
             <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
               <CheckCircle2 className="h-5 w-5" />
             </div>
-            <div>
-              <div className="font-semibold text-sm text-foreground">Threat Monitoring Level: Low</div>
+            <div className="min-w-0">
+              <div className="font-semibold text-sm text-foreground truncate">Threat Monitoring Level: Low</div>
               <div className="text-xs text-muted-foreground mt-0.5">0 open security alerts or anomalous access attempts reported in past 30 days.</div>
             </div>
           </div>
@@ -242,8 +242,8 @@ export default function StaffAdminHub() {
             <div className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center shrink-0">
               <Lock className="h-5 w-5" />
             </div>
-            <div>
-              <div className="font-semibold text-sm text-foreground">Idle Auto-Logout Mounted</div>
+            <div className="min-w-0">
+              <div className="font-semibold text-sm text-foreground truncate">Idle Auto-Logout Mounted</div>
               <div className="text-xs text-muted-foreground mt-0.5">15-minute inactive session termination active on all staff workstations.</div>
             </div>
           </div>
@@ -252,8 +252,8 @@ export default function StaffAdminHub() {
             <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
               <ShieldAlert className="h-5 w-5" />
             </div>
-            <div>
-              <div className="font-semibold text-sm text-foreground">CMIA 15-Day SLA Active</div>
+            <div className="min-w-0">
+              <div className="font-semibold text-sm text-foreground truncate">CMIA 15-Day SLA Active</div>
               <div className="text-xs text-muted-foreground mt-0.5">California Confidentiality of Medical Information Act notification tracker ready.</div>
             </div>
           </div>
@@ -295,8 +295,8 @@ export default function StaffAdminHub() {
         <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
           <div className="divide-y divide-border">
             {activities.map((act) => (
-              <div key={act.id} className="p-4 flex items-center justify-between hover:bg-muted/30 transition text-xs md:text-sm">
-                <div className="flex items-center gap-3">
+              <div key={act.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-muted/30 transition text-xs md:text-sm">
+                <div className="flex items-start gap-3 min-w-0">
                   <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center shrink-0">
                     {act.category === "login" && <Users className="h-4 w-4 text-blue-600" />}
                     {act.category === "mfa" && <Lock className="h-4 w-4 text-emerald-600" />}
@@ -304,14 +304,14 @@ export default function StaffAdminHub() {
                     {act.category === "audit" && <Eye className="h-4 w-4 text-amber-600" />}
                     {act.category === "breach" && <ShieldAlert className="h-4 w-4 text-red-600" />}
                   </div>
-                  <div>
-                    <div className="font-medium text-foreground">{act.title}</div>
-                    <div className="text-xs text-muted-foreground mt-0.5">{act.desc}</div>
+                  <div className="min-w-0">
+                    <div className="font-medium text-foreground truncate">{act.title}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2 sm:line-clamp-none sm:truncate">{act.desc}</div>
                   </div>
                 </div>
-                <div className="text-right shrink-0 ml-4">
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center ml-11 sm:ml-4 shrink-0 border-t sm:border-0 border-border/50 pt-3 sm:pt-0 mt-1 sm:mt-0">
                   <div className="text-xs text-muted-foreground">{act.time}</div>
-                  <Badge variant="outline" className="text-[10px] mt-1 uppercase font-semibold tracking-wider">
+                  <Badge variant="outline" className="text-[10px] mt-0 sm:mt-1 uppercase font-semibold tracking-wider">
                     {act.category}
                   </Badge>
                 </div>
@@ -357,7 +357,7 @@ export default function StaffAdminHub() {
         </div>
         <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs md:text-sm">
+            <table className="w-full text-left text-xs md:text-sm whitespace-nowrap min-w-[600px]">
               <thead className="bg-muted/50 text-muted-foreground uppercase text-[10px] tracking-wider border-b border-border">
                 <tr>
                   <th className="p-3.5">Action Event</th>
