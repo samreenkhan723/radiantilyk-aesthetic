@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 
-export type AppRole = "admin" | "staff" | "scheduler" | "nurse_practitioner" | "receptionist";
+export type AppRole = "admin" | "staff" | "scheduler" | "nurse_practitioner" | "receptionist" | "privacy_officer";
 
 export interface AuthState {
   session: Session | null;
@@ -15,6 +15,7 @@ export interface AuthState {
   isReceptionist: boolean;
   isStaff: boolean;
   isNP: boolean;
+  isPrivacyOfficer: boolean;
   isClinicalStaff: boolean;
   isPrivileged: boolean; // admin OR provider (staff) OR nurse_practitioner
   canSeeAll: boolean; // admin OR scheduler OR receptionist OR nurse practitioner
@@ -141,8 +142,9 @@ export function useAuth(): AuthState {
   const isReceptionist = roles.includes("receptionist");
   const isStaff = roles.includes("staff");
   const isNP = roles.includes("nurse_practitioner");
+  const isPrivacyOfficer = isAdmin || roles.includes("privacy_officer");
   const isClinicalStaff = isAdmin || isStaff || isScheduler || isNP;
-  const isPrivileged = isAdmin || isStaff || isNP;
+  const isPrivileged = isAdmin || isStaff || isNP || isPrivacyOfficer;
   const canOverride = isAdmin || isScheduler || isReceptionist || isNP;
   const canSeeAll = canOverride || isNP;
   return {
@@ -156,6 +158,7 @@ export function useAuth(): AuthState {
     isReceptionist,
     isStaff,
     isNP,
+    isPrivacyOfficer,
     isClinicalStaff,
     isPrivileged,
     canSeeAll,

@@ -21,9 +21,10 @@ interface Member {
   pending_role?: Role;
 }
 
-type Role = "admin" | "provider" | "nurse_practitioner" | "scheduler" | "receptionist" | "staff";
+type Role = "admin" | "provider" | "nurse_practitioner" | "scheduler" | "receptionist" | "staff" | "privacy_officer";
 const ROLE_LABELS: Record<Role, string> = {
   admin: "Admin (full access)",
+  privacy_officer: "Privacy & Security Officer (HIPAA Policy Approval & Security)",
   provider: "Provider (clinical provider)",
   nurse_practitioner: "Nurse Practitioner (GFE + clinical co-sign)",
   scheduler: "Scheduler (manage all bookings)",
