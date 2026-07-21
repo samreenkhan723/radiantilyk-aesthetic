@@ -303,13 +303,42 @@ export default function StaffLayout() {
     <div className="h-screen overflow-hidden bg-background flex flex-col">
       {/* Top Full-width Portal Header Bar */}
       <header className="w-full border-b border-border bg-card/80 backdrop-blur px-4 md:px-6 py-3 flex items-center justify-between z-30 shrink-0">
-        {/* Left Corner: Portal Badge */}
-        <div className="flex items-center gap-3">
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${isAdmin ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : "bg-primary/10 text-primary border border-primary/20"}`}>
-            <ShieldCheck className="h-4 w-4" />
-            {isAdmin ? "Admin Portal" : "Staff Portal"}
+        {/* Left Corner: Mobile Menu & Portal Badge */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="md:hidden">
+            <Sheet open={open} onOpenChange={setOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="-ml-2"><Menu className="h-5 w-5" /></Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64 p-4 flex flex-col justify-between">
+                <div className="overflow-y-auto">
+                  <div className="font-serif text-lg font-bold mb-4">Navigation</div>
+                  <nav className="space-y-1">{NavInner}</nav>
+                </div>
+                <div className="pt-3 border-t border-border shrink-0 mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start text-xs"
+                    onClick={async () => {
+                      clearDemoAuthSession();
+                      await supabase.auth.signOut();
+                      navigate("/staff/login");
+                    }}
+                  >
+                    <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-          <span className="text-xs text-muted-foreground hidden md:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
+
+          <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${isAdmin ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : "bg-primary/10 text-primary border border-primary/20"}`}>
+            <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span className="hidden sm:inline">{isAdmin ? "Admin Portal" : "Staff Portal"}</span>
+            <span className="sm:hidden">{isAdmin ? "Admin" : "Staff"}</span>
+          </div>
+          <span className="text-xs text-muted-foreground hidden lg:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
         </div>
 
         {/* Right Corner: Company Name, Logo & Top Right Sign Out */}
@@ -340,35 +369,7 @@ export default function StaffLayout() {
 
       {/* Main Container with Sidebar and Content */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Mobile / tablet drawer button header */}
-        <div className="md:hidden border-b border-border p-3 flex items-center justify-between bg-card shrink-0">
-          <div className="flex items-center gap-2">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon"><Menu className="h-5 w-5" /></Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-4 flex flex-col justify-between">
-                <div>
-                  <div className="font-serif text-lg font-bold mb-4">Navigation</div>
-                  <nav className="space-y-1">{NavInner}</nav>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full justify-start text-xs"
-                  onClick={async () => {
-                    clearDemoAuthSession();
-                    await supabase.auth.signOut();
-                    navigate("/staff/login");
-                  }}
-                >
-                  <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
-                </Button>
-              </SheetContent>
-            </Sheet>
-            <span className="font-serif text-sm font-semibold">{isAdmin ? "Admin Portal" : "Staff Portal"}</span>
-          </div>
-        </div>
+
 
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card p-4 shrink-0 justify-between">
@@ -393,7 +394,7 @@ export default function StaffLayout() {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className="flex-1 overflow-y-auto bg-background min-w-0">
           <Outlet />
         </main>
       </div>
