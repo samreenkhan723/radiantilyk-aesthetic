@@ -8,6 +8,7 @@ import { Loader2, ChevronLeft, ChevronRight, MapPin, Plus, Calendar as CalendarI
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { fetchUnifiedStaffMembers } from "@/lib/unifiedStaff";
 
 interface Appt {
   id: string; status: string; start_at: string; end_at: string;
@@ -21,7 +22,7 @@ interface Schedule {
   staff_id: string; location_id: string; day_of_week: number; start_time: string; end_time: string;
   recurrence: string; anchor_date: string | null; weeks_of_month: number[] | null;
 }
-interface StaffP { id: string; full_name: string; color: string; }
+interface StaffP { id: string; full_name: string; color?: string; }
 
 export default function StaffCalendar() {
   const navigate = useNavigate();
@@ -67,11 +68,11 @@ export default function StaffCalendar() {
     (async () => {
       setLoading(true);
       const [s, sv, l] = await Promise.all([
-        supabase.from("staff_profiles").select("id, full_name, color").eq("is_active", true),
+        fetchUnifiedStaffMembers(),
         supabase.from("services").select("id, name"),
         supabase.from("locations").select("id, name").eq("is_active", true),
       ]);
-      setStaff(s.data ?? []);
+      setStaff(s as StaffP[]);
       setServices(sv.data ?? []);
       setLocations(l.data ?? []);
       // Use local-day boundaries so appointments near midnight land on the right day

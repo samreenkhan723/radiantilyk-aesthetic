@@ -91,7 +91,10 @@ export default function StaffLogin() {
       if (aal?.currentLevel === "aal2") {
         setStep("redirecting");
         setMode("ready");
-        setTimeout(() => navigate("/staff/today", { replace: true }), 350);
+        const isOfficer = email.toLowerCase() === "officer@gmail.com";
+        const isAdminEmail = email.toLowerCase() === "admin@gmail.com";
+        const target = isAdminEmail ? "/staff/admin" : isOfficer ? "/staff/security-officer" : "/staff/today";
+        setTimeout(() => navigate(target, { replace: true }), 350);
         return;
       }
       const { data: factors, error } = await withTimeout(supabase.auth.mfa.listFactors(), "Loading authenticator factors");
@@ -176,9 +179,10 @@ export default function StaffLogin() {
     const cleanEmail = email.trim().toLowerCase();
 
     // 1. Check built-in demo accounts first
-    if (cleanEmail === "admin@gmail.com" || cleanEmail === "staff@gmail.com") {
+    if (cleanEmail === "admin@gmail.com" || cleanEmail === "staff@gmail.com" || cleanEmail === "officer@gmail.com") {
       const isAd = cleanEmail === "admin@gmail.com";
-      const roles: AppRole[] = isAd ? ["admin"] : ["staff", "nurse_practitioner"];
+      const isOfficer = cleanEmail === "officer@gmail.com";
+      const roles: AppRole[] = isAd ? ["admin"] : isOfficer ? ["privacy_officer", "staff"] : ["staff", "nurse_practitioner"];
       setPendingDemoLogin({ cleanEmail, roles, isAd });
       setLoading(false);
       setStep("mfa-verify");
@@ -254,10 +258,16 @@ export default function StaffLogin() {
       }
       setBusy(true);
       setDemoAuthSession(pendingDemoLogin.cleanEmail, pendingDemoLogin.roles);
-      toast.success("MFA Verification Successful — HIPAA Compliance Secured");
+      toast.success("MFA Verification Successful — Security Operations Center Access Granted");
       setStep("redirecting");
       setTimeout(() => {
-        navigate(pendingDemoLogin.isAd ? "/staff/admin" : "/staff/today", { replace: true });
+        const isOfficer = pendingDemoLogin.roles.includes("privacy_officer") || pendingDemoLogin.cleanEmail === "officer@gmail.com";
+        const target = pendingDemoLogin.isAd
+          ? "/staff/admin"
+          : isOfficer
+          ? "/staff/security-officer"
+          : "/staff/today";
+        navigate(target, { replace: true });
       }, 400);
       return;
     }
@@ -277,7 +287,12 @@ export default function StaffLogin() {
       }
       toast.dismiss();
       setStep("redirecting");
-      setTimeout(() => navigate("/staff/today", { replace: true }), 400);
+      setTimeout(() => {
+        const isOfficer = email.toLowerCase() === "officer@gmail.com";
+        const isAdminEmail = email.toLowerCase() === "admin@gmail.com";
+        const target = isAdminEmail ? "/staff/admin" : isOfficer ? "/staff/security-officer" : "/staff/today";
+        navigate(target, { replace: true });
+      }, 400);
     } catch (e) {
       toast.error(errorMessage(e, "Could not verify two-factor code."));
     } finally {
@@ -347,6 +362,7 @@ export default function StaffLogin() {
               <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
                 <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
                 <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
+<<<<<<< HEAD
                 <div className={`grid gap-2 ${(!roleParam || (roleParam !== "admin" && roleParam !== "staff")) ? "grid-cols-2" : "grid-cols-1"}`}>
                   {roleParam !== "staff" && (
                     <button
@@ -366,6 +382,30 @@ export default function StaffLogin() {
                       🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground">staff@gmail.com</span>
                     </button>
                   )}
+=======
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fillDemoCredentials("admin@gmail.com")}
+                    className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                  >
+                    👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground truncate block">admin@gmail.com</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fillDemoCredentials("officer@gmail.com")}
+                    className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition text-left text-xs font-medium cursor-pointer text-emerald-800 dark:text-emerald-300"
+                  >
+                    🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fillDemoCredentials("staff@gmail.com")}
+                    className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                  >
+                    🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
+                  </button>
+>>>>>>> c4a92dcd405d606c32ccee0d38e67829027a872b
                 </div>
               </div>
 

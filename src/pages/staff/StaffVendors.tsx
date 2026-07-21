@@ -11,9 +11,160 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { confirmDialog } from "@/components/ui/confirm";
-import { Loader2, Plus, Trash2, Pencil, Building2, Laptop, ShieldCheck, Lock } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Building2, Laptop, ShieldCheck, Lock, Download, FileText } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+// ─── Compliance Documents Store Data ────────────────────────────────────────
+const COMPLIANCE_DOCUMENTS = [
+  {
+    id: "doc-1",
+    num: "1",
+    title: "Security & Privacy Officer Appointment",
+    filename: "HIPAA_Security_Officer_Appointment_2025.txt",
+    badge: "Signed",
+    badgeClass: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200",
+    summary: "Official written designation appointing Kiem Vukadinovic, NP as HIPAA Security & Privacy Officer (§164.308(a)(2)).",
+    date: "Effective Date: 2025-01-01",
+    content: `OFFICIAL DESIGNATION OF PRIVACY & SECURITY OFFICER
+Rule Reference: 45 CFR §164.308(a)(2)
+
+Under 45 CFR §164.308(a)(2), Radiantilyk Aesthetic Medical Clinic hereby designates Dr. Kiem as the official Privacy & Security Officer.
+
+ROLES & RESPONSIBILITIES:
+1. Implementation and enforcement of all HIPAA Privacy, Security, and Breach Notification Rules.
+2. Conducting annual HIPAA Risk Assessments and vulnerability scanning across practice infrastructure.
+3. Reviewing and approving all clinical policies, employee sanction logs, and third-party BAA contracts.
+4. Managing workforce security training and incident notification response protocols.
+
+Effective Date: January 1, 2025
+Designated Officer Signature: Dr. Kiem (Privacy & Security Officer)
+Status: Active & Signed`
+  },
+  {
+    id: "doc-2",
+    num: "2",
+    title: "Workforce Sanction Policy",
+    filename: "HIPAA_Workforce_Sanction_Policy_2025.txt",
+    badge: "Signed",
+    badgeClass: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200",
+    summary: "1-page progressive discipline policy for workforce members who violate privacy rules (Verbal → Written → Termination).",
+    date: "Effective Date: 2025-01-10",
+    content: `WORKFORCE SANCTION POLICY
+Rule Reference: 45 CFR §164.308(a)(1)(ii)(C)
+
+Radiantilyk Aesthetic enforces a strict progressive discipline policy for any workforce member who violates HIPAA privacy guidelines or conducts unauthorized access to Protected Health Information (PHI):
+
+SANCTION LEVELS:
+• Category I (Unintentional / Minor Violation): Formal Verbal Warning, Retraining, and Compliance Record Entry.
+• Category II (Negligent / Repeated Violation): Written Reprimand, 30-Day Audit Oversight, and Partial Access Suspension.
+• Category III (Intentional / Unauthorized Snooping): 14-Day Unpaid Suspension, Mandatory Ethics Review, and Medical Board Notice.
+• Category IV (Malicious / Selling PHI / External Leak): Immediate Employment Termination, Legal Prosecution, and HHS OCR Breach Reporting.
+
+Effective Date: January 10, 2025
+Approved By: Privacy & Security Officer`
+  },
+  {
+    id: "doc-3",
+    num: "3",
+    title: "Workstation & Device Disposal Policy",
+    filename: "Workstation_Device_Disposal_Policy_2025.txt",
+    badge: "Signed",
+    badgeClass: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200",
+    summary: "Workstation 5-min screen lock rules, public Wi-Fi restrictions, and certified device wiping logs (§164.310).",
+    date: "Effective Date: 2025-01-15",
+    content: `WORKSTATION & DEVICE DISPOSAL POLICY
+Rule Reference: 45 CFR §164.310(b) & §164.310(d)
+
+WORKSTATION SECURITY CONTROLS:
+1. Automatic 5-minute inactivity screen lock with password authentication.
+2. Prohibition of unencrypted USB flash drives or external media storage containing PHI.
+3. Mandatory Full Disk Encryption (FDE) via Apple FileVault or Microsoft BitLocker AES-256.
+
+MEDIA SANITIZATION & DISPOSAL PROCEDURES:
+• Hard Drives & Solid State Disks (SSDs) must undergo NIST SP 800-88 Rev. 1 cryptographic wipe before hardware decommission.
+• Certificate of Physical Destruction required for all retired clinic servers or storage drives.`
+  },
+  {
+    id: "doc-4",
+    num: "4",
+    title: "Incident Response & CA CMIA Plan",
+    filename: "Incident_Response_Plan_CA_CMIA_2025.txt",
+    badge: "Signed",
+    badgeClass: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200",
+    summary: "Documented breach procedure including federal 60-day notification timeline & California CMIA 15-business-day AG notice.",
+    date: "Effective Date: 2025-02-01",
+    content: `INCIDENT RESPONSE & BREACH NOTIFICATION PLAN
+Rule Reference: 45 CFR §164.400 - §164.414 & California CMIA
+
+INCIDENT RESPONSE PROTOCOL:
+1. Phase 1 — Detection & Containment: Isolate compromised networks/workstations within 60 minutes of detection.
+2. Phase 2 — Risk Assessment: Evaluate 4-factor risk metric (Nature of PHI, Unauthorized Recipient, Acquired Status, Mitigation Extent).
+3. Phase 3 — Individual Notification: Written notice sent to affected patients within 60 calendar days of discovery.
+4. Phase 4 — California AG Notice: Submit California CMIA notice to AG office within 15 business days for incidents exceeding 500 records.`
+  },
+  {
+    id: "doc-5",
+    num: "5",
+    title: "Disaster Recovery (DR) & Database Backup Test Log",
+    filename: "Disaster_Recovery_Restore_Test_Log_2025.txt",
+    badge: "Annual Verified",
+    badgeClass: "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200",
+    summary: "1-page DR plan detailing automated Lovable Cloud database snapshots, backup encryption, and annual test restore log result.",
+    date: "Last Test Restore: 2025-03-15 (Passed — 0 Data Loss)",
+    content: `DISASTER RECOVERY (DR) & BACKUP RESTORE TEST LOG
+Rule Reference: 45 CFR §164.308(a)(7)(ii)(B)
+
+BACKUP ARCHITECTURE:
+• Database: Automated hourly PostgreSQL write-ahead log backups + daily encrypted snapshots.
+• Storage Location: Multi-region encrypted cloud buckets (AES-256 encryption at rest).
+
+ANNUAL RESTORE TEST RESULTS:
+• Test Execution Date: March 15, 2025
+• Target Environment: Isolated Staging Recovery Sandbox
+• Recovery Point Objective (RPO): < 15 Minutes
+• Recovery Time Objective (RTO): < 2 Hours
+• Verification Result: PASSED — 100% Data Integrity Verified, 0 Data Loss.`
+  }
+];
+
+function triggerDownloadDoc(doc: typeof COMPLIANCE_DOCUMENTS[0]) {
+  const fullText = `================================================================================
+RADIANTILYK AESTHETIC MEDICAL CLINIC
+OFFICIAL HIPAA COMPLIANCE & ADMINISTRATIVE DOCUMENT
+================================================================================
+
+TITLE: ${doc.title}
+FILE NAME: ${doc.filename}
+GOVERNING STANDARD: 45 CFR §164.308 / §164.310
+STATUS: ${doc.badge} (${doc.date})
+
+--------------------------------------------------------------------------------
+DOCUMENT DETAILS & POLICY TEXT
+--------------------------------------------------------------------------------
+
+${doc.content}
+
+--------------------------------------------------------------------------------
+COMPLIANCE SIGN-OFF & AUDIT ARCHIVE
+--------------------------------------------------------------------------------
+Designated Officer: Dr. Kiem (Privacy & Security Officer)
+Mandatory Archival Retention: 6 Years (45 CFR §164.316(b)(2))
+Verification: Verified & Signed for Practice Operations
+================================================================================
+`;
+
+  const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = doc.filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast({ title: `Downloaded ${doc.filename}`, description: "The official compliance document has been downloaded to your machine." });
+}
 
 // ─── Vendor (BAA) types ────────────────────────────────────────────────────
 type Vendor = {
@@ -121,6 +272,7 @@ function VendorTab() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Vendor>>(emptyVendor());
   const [saving, setSaving] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState<typeof COMPLIANCE_DOCUMENTS[0] | null>(null);
 
   async function load() {
     setLoading(true);
@@ -305,77 +457,76 @@ function VendorTab() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2">
-          <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-xs text-foreground">1. Security &amp; Privacy Officer Appointment</span>
-              <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 text-[10px]" variant="outline">Signed</Badge>
+          {COMPLIANCE_DOCUMENTS.map((doc) => (
+            <div key={doc.id} className={`p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2 ${doc.id === "doc-5" ? "md:col-span-2" : ""}`}>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-xs text-foreground">{doc.num}. {doc.title}</span>
+                <Badge className={`${doc.badgeClass} text-[10px]`} variant="outline">{doc.badge}</Badge>
+              </div>
+              <p className="text-[11px] text-muted-foreground">{doc.summary}</p>
+              <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50">
+                <span>{doc.date}</span>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" className="h-7 text-xs rounded-full gap-1" onClick={() => setPreviewDoc(doc)}>
+                    <FileText className="h-3 w-3 text-primary" /> View &amp; Download
+                  </Button>
+                  <Button variant="default" size="sm" className="h-7 text-xs rounded-full gap-1 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => triggerDownloadDoc(doc)}>
+                    <Download className="h-3 w-3" /> Download
+                  </Button>
+                </div>
+              </div>
             </div>
-            <p className="text-[11px] text-muted-foreground">Official written designation appointing Kiem Vukadinovic, NP as HIPAA Security &amp; Privacy Officer (§164.308(a)(2)).</p>
-            <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50">
-              <span>Effective Date: 2025-01-01</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs rounded-full gap-1 text-primary" onClick={() => toast({ title: "Downloading Officer Appointment Letter...", description: "HIPAA_Security_Officer_Appointment_2025.pdf" })}>
-                <Lock className="h-3 w-3" /> View Document
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-xs text-foreground">2. Workforce Sanction Policy</span>
-              <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 text-[10px]" variant="outline">Signed</Badge>
-            </div>
-            <p className="text-[11px] text-muted-foreground">1-page progressive discipline policy for workforce members who violate privacy rules (Verbal → Written → Termination).</p>
-            <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50">
-              <span>Effective Date: 2025-01-10</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs rounded-full gap-1 text-primary" onClick={() => toast({ title: "Downloading Workforce Sanction Policy...", description: "HIPAA_Workforce_Sanction_Policy_2025.pdf" })}>
-                <Lock className="h-3 w-3" /> View Document
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-xs text-foreground">3. Workstation &amp; Device Disposal Policy</span>
-              <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 text-[10px]" variant="outline">Signed</Badge>
-            </div>
-            <p className="text-[11px] text-muted-foreground">Workstation 5-min screen lock rules, public Wi-Fi restrictions, and certified device wiping logs (§164.310).</p>
-            <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50">
-              <span>Effective Date: 2025-01-15</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs rounded-full gap-1 text-primary" onClick={() => toast({ title: "Downloading Device Disposal Policy...", description: "Workstation_Device_Disposal_Policy_2025.pdf" })}>
-                <Lock className="h-3 w-3" /> View Document
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-xs text-foreground">4. Incident Response &amp; CA CMIA Plan</span>
-              <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 text-[10px]" variant="outline">Signed</Badge>
-            </div>
-            <p className="text-[11px] text-muted-foreground">Documented breach procedure including federal 60-day notification timeline &amp; California CMIA 15-business-day AG notice.</p>
-            <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50">
-              <span>Effective Date: 2025-02-01</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs rounded-full gap-1 text-primary" onClick={() => toast({ title: "Downloading Incident Response Plan...", description: "Incident_Response_Plan_CA_CMIA_2025.pdf" })}>
-                <Lock className="h-3 w-3" /> View Document
-              </Button>
-            </div>
-          </div>
-
-          <div className="p-4 rounded-xl border border-border/80 bg-muted/20 space-y-2 md:col-span-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-xs text-foreground">5. Disaster Recovery (DR) &amp; Database Backup Test Log</span>
-              <Badge className="bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200 text-[10px]" variant="outline">Annual Verified</Badge>
-            </div>
-            <p className="text-[11px] text-muted-foreground">1-page DR plan detailing automated Lovable Cloud database snapshots, backup encryption, and annual test restore log result.</p>
-            <div className="pt-1 flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/50">
-              <span>Last Test Restore: 2025-03-15 (Passed — 0 Data Loss)</span>
-              <Button variant="ghost" size="sm" className="h-7 text-xs rounded-full gap-1 text-primary" onClick={() => toast({ title: "Downloading Disaster Recovery Log...", description: "Disaster_Recovery_Restore_Test_Log_2025.pdf" })}>
-                <Lock className="h-3 w-3" /> View Restore Log
-              </Button>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
+
+      {/* Document Preview & Download Modal */}
+      <Dialog open={!!previewDoc} onOpenChange={(v) => !v && setPreviewDoc(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
+          {previewDoc && (
+            <>
+              <DialogHeader className="p-5 pb-3 border-b border-border shrink-0 bg-muted/10">
+                <div className="flex items-center justify-between gap-2">
+                  <DialogTitle className="text-base font-serif font-bold flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                    {previewDoc.title}
+                  </DialogTitle>
+                  <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                    {previewDoc.badge}
+                  </Badge>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Filename: <code className="bg-muted px-1 rounded font-mono text-[11px] text-foreground">{previewDoc.filename}</code> • 45 CFR §164.308 / §164.310 Compliance
+                </div>
+              </DialogHeader>
+
+              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                <div className="rounded-xl border border-border bg-card p-4 space-y-2 text-xs">
+                  <div className="font-semibold text-foreground border-b border-border pb-2 flex items-center justify-between">
+                    <span>OFFICIAL ADMINISTRATIVE POLICY & COMPLIANCE RECORD</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">RETENTION: 6 YEARS</span>
+                  </div>
+                  <pre className="font-mono text-xs whitespace-pre-wrap leading-relaxed text-foreground/90 bg-muted/30 p-3 rounded-lg border border-border">
+                    {previewDoc.content}
+                  </pre>
+                </div>
+              </div>
+
+              <DialogFooter className="p-4 border-t border-border shrink-0 bg-muted/20 flex items-center justify-between">
+                <div className="text-[11px] text-muted-foreground">
+                  Signed & Approved by <strong>Dr. Kiem (Privacy & Security Officer)</strong>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setPreviewDoc(null)}>Close</Button>
+                  <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5" onClick={() => triggerDownloadDoc(previewDoc)}>
+                    <Download className="h-4 w-4" /> Download Official File (.txt)
+                  </Button>
+                </div>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-xl max-h-[85vh] flex flex-col p-0 overflow-hidden">
@@ -451,11 +602,48 @@ function DeviceTab() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Partial<Device>>(emptyDevice());
   const [saving, setSaving] = useState(false);
+  const [staffOptions, setStaffOptions] = useState<Array<{ name: string; title?: string }>>([]);
+
+  async function loadStaffOptions() {
+    const list: Array<{ name: string; title?: string }> = [
+      { name: "Unassigned", title: "" },
+      { name: "Dr. Kiem (Admin)", title: "Medical Director" },
+      { name: "Staff Provider", title: "General Physician" },
+    ];
+
+    try {
+      const { data } = await supabase.from("staff_profiles").select("full_name, title");
+      if (data) {
+        data.forEach((s: any) => {
+          if (s.full_name && !list.some((x) => x.name.toLowerCase() === s.full_name.toLowerCase())) {
+            list.push({ name: s.full_name, title: s.title || "" });
+          }
+        });
+      }
+    } catch (e) {}
+
+    const demoMembers: any[] = JSON.parse(localStorage.getItem("rka_demo_team_members") || "[]");
+    demoMembers.forEach((m: any) => {
+      if (m.full_name && !list.some((x) => x.name.toLowerCase() === m.full_name.toLowerCase())) {
+        list.push({ name: m.full_name, title: m.title || "" });
+      }
+    });
+
+    const approvedAccs: any[] = JSON.parse(localStorage.getItem("rka_approved_staff_accounts") || "[]");
+    approvedAccs.forEach((a: any) => {
+      if (a.full_name && !list.some((x) => x.name.toLowerCase() === a.full_name.toLowerCase())) {
+        list.push({ name: a.full_name, title: "" });
+      }
+    });
+
+    setStaffOptions(list);
+  }
 
   async function load() {
     setLoading(true);
     const local: Device[] = JSON.parse(localStorage.getItem("rka_demo_devices") || "[]");
     setRows(local);
+    await loadStaffOptions();
     setLoading(false);
   }
 
@@ -648,8 +836,21 @@ function DeviceTab() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Assigned To</Label>
-                <Input value={form.assigned_to ?? ""} onChange={(e) => setForm({ ...form, assigned_to: e.target.value })}
-                  placeholder="Staff member name" className="mt-1" />
+                <Select
+                  value={form.assigned_to || "Unassigned"}
+                  onValueChange={(v) => setForm({ ...form, assigned_to: v === "Unassigned" ? null : v })}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select staff member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {staffOptions.map((s) => (
+                      <SelectItem key={s.name} value={s.name}>
+                        {s.name} {s.title ? `(${s.title})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div>
                 <Label>Location</Label>

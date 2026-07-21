@@ -111,6 +111,7 @@ import GFEIndex from "./pages/staff/clinical/GFEIndex.tsx";
 import StaffVendors from "./pages/staff/StaffVendors.tsx";
 import StaffBreachReport from "./pages/staff/StaffBreachReport.tsx";
 import StaffHipaaPolicies from "./pages/staff/StaffHipaaPolicies.tsx";
+import StaffSecurityOfficer from "./pages/staff/StaffSecurityOfficer.tsx";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -203,6 +204,7 @@ const App = () => (
             <Route path="profile" element={<Navigate to="/staff/me" replace />} />
             <Route path="schedule" element={<Navigate to="/staff/my-schedule" replace />} />
             <Route path="admin" element={<AdminOnly><StaffAdminHub /></AdminOnly>} />
+            <Route path="security-officer" element={<AdminOnly><StaffSecurityOfficer /></AdminOnly>} />
             <Route path="vendors" element={<AdminOnly><StaffVendors /></AdminOnly>} />
             <Route path="breach-report" element={<StaffBreachReport />} />
             <Route path="hipaa-policies" element={<AdminOnly><StaffHipaaPolicies /></AdminOnly>} />

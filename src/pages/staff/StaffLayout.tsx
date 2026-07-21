@@ -13,6 +13,7 @@ import {
 import { CommandPalette } from "@/components/CommandPalette";
 import { KeyboardShortcutsHelp } from "@/components/staff/KeyboardShortcutsHelp";
 import { StaffBottomNav } from "@/components/staff/StaffBottomNav";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Menu, Sun, Inbox, MessageSquare, Calendar as CalIcon, Clock, CreditCard,
   Stethoscope, ShieldCheck, ShieldAlert, Boxes, UserCircle2, Star, Users,
@@ -38,7 +39,7 @@ interface Group {
 }
 
 export default function StaffLayout() {
-  const { user, loading, roles, isAdmin, isNP, isStaff, isReceptionist, isScheduler, isPrivileged } = useAuth();
+  const { user, loading, roles, isAdmin, isNP, isStaff, isReceptionist, isScheduler, isPrivacyOfficer, isPrivileged } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -104,6 +105,7 @@ export default function StaffLayout() {
   const adminNavItems: NavItem[] = useMemo(() => [
     { to: "/staff/admin", label: "Compliance Dashboard", icon: ShieldCheck },
     { to: "/staff/team", label: "Staff Management", icon: Users },
+    { to: "/staff/security-officer", label: "Privacy & Security Officer", icon: ShieldCheck },
     { to: "/staff/audit-report", label: "Audit Logs", icon: HistoryIcon },
     { to: "/staff/hipaa-policies", label: "HIPAA Policies", icon: BookOpen },
     { to: "/staff/vendors?tab=devices", label: "Device Inventory", icon: Laptop },
@@ -150,6 +152,20 @@ export default function StaffLayout() {
       },
 
       {
+        key: "security_officer",
+        label: "Security & Compliance",
+        icon: ShieldCheck,
+        show: isPrivacyOfficer,
+        children: [
+          { to: "/staff/security-officer", label: "Security Operations Center", icon: ShieldCheck },
+          { to: "/staff/hipaa-policies", label: "HIPAA Policy Approval", icon: BookOpen },
+          { to: "/staff/audit-report", label: "Audit & PHI Access Logs", icon: HistoryIcon },
+          { to: "/staff/breach-report", label: "Incident & Breach Reports", icon: ShieldAlert },
+          { to: "/staff/vendors?tab=devices", label: "Device Inventory & Encryption", icon: Laptop },
+          { to: "/staff/vendors", label: "Vendor Management & BAAs", icon: Building2 },
+        ],
+      },
+      {
         key: "clinical",
         label: "Clinical",
         icon: Stethoscope,
@@ -167,9 +183,7 @@ export default function StaffLayout() {
         ],
       },
     ];
-  }, [isScheduler, isReceptionist, isStaff, isNP, pendingCount, unreadSms]);
-
-
+  }, [isScheduler, isReceptionist, isStaff, isNP, isPrivacyOfficer, pendingCount, unreadSms]);
 
   if (loading || (user && !mfaChecked)) {
     return (
@@ -182,7 +196,7 @@ export default function StaffLayout() {
   if (!user) return <Navigate to="/staff/login" replace />;
   if (isPrivileged && !mfaOk) return <Navigate to="/staff/mfa" replace />;
 
-  const isStaffMember = isAdmin || isScheduler || isReceptionist || isStaff || isNP;
+  const isStaffMember = isAdmin || isScheduler || isReceptionist || isStaff || isNP || isPrivacyOfficer;
 
   if (!isStaffMember) {
     return (
@@ -292,9 +306,13 @@ export default function StaffLayout() {
         </div>
       )}
 
-      <div className="pt-3 mt-4 border-t border-border space-y-0.5">
+      <div className="pt-3 mt-4 border-t border-border space-y-1">
         <NavLink to="/staff/me" className={footerLinkCls} onClick={() => setOpen(false)}><UserCircle2 className="h-4 w-4" />My Profile</NavLink>
         <NavLink to="/staff/help" className={footerLinkCls} onClick={() => setOpen(false)}><BookOpen className="h-4 w-4" />Help / Handbook</NavLink>
+        <div className="flex items-center justify-between px-3 py-1.5 text-xs font-medium text-muted-foreground rounded-lg">
+          <span>Appearance</span>
+          <ThemeToggle className="h-7 w-7 border border-border bg-background/80 hover:bg-accent rounded-full" />
+        </div>
       </div>
     </>
   );
@@ -349,6 +367,37 @@ export default function StaffLayout() {
             <span className="hidden sm:inline">{isAdmin ? "Admin Portal" : "Staff Portal"}</span>
             <span className="sm:hidden">{isAdmin ? "Admin" : "Staff"}</span>
           </div>
+<<<<<<< HEAD
+=======
+          <span className="text-xs text-muted-foreground hidden lg:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
+        </div>
+
+        {/* Right Corner: Company Name, Logo, Theme Toggle & Top Right Sign Out */}
+        <div className="flex items-center gap-2 md:gap-3">
+          <Link to={isAdmin ? "/staff/admin" : "/staff/today"} className="flex items-center gap-3 hover:opacity-90 transition">
+            <div className="text-right hidden sm:block">
+              <div className="font-serif text-sm leading-tight font-medium">Radiantilyk Aesthetic</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{isAdmin ? "Admin Dashboard" : "Staff Hub"}</div>
+            </div>
+            <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-9 w-9 rounded-full object-cover shadow-soft" />
+          </Link>
+
+          <ThemeToggle className="h-9 w-9 border border-border bg-background/80 hover:bg-accent shrink-0 rounded-full" />
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10 shrink-0"
+            onClick={async () => {
+              clearDemoAuthSession();
+              await supabase.auth.signOut();
+              navigate("/staff/login");
+            }}
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Sign Out</span>
+          </Button>
+>>>>>>> c4a92dcd405d606c32ccee0d38e67829027a872b
         </div>
       </header>
 

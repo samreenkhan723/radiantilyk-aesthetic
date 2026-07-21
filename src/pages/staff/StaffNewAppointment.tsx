@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { formatPhone10 } from "@/lib/formatPhone";
 
 
+import { fetchUnifiedStaffMembers } from "@/lib/unifiedStaff";
+
 export default function StaffNewAppointment() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -85,13 +87,29 @@ export default function StaffNewAppointment() {
     Promise.all([
       supabase.from("services").select("id, name, duration_minutes").eq("is_active", true).order("name"),
       supabase.from("locations").select("id, name").eq("is_active", true).order("name"),
-      supabase.from("staff_profiles").select("id, full_name").eq("is_active", true).order("full_name"),
+      fetchUnifiedStaffMembers(),
       supabase.from("service_providers").select("service_id, staff_id, location_id"),
     ]).then(([s, l, st, p]) => {
-      setServices(s.data ?? []); setLocations(l.data ?? []); setStaff(st.data ?? []); setProviders(p.data ?? []);
+      setServices(s.data ?? []);
+      setLocations(l.data ?? []);
+      setStaff(st);
+      setProviders(p.data ?? []);
       if (!canSeeAll && staffId) setStaffIdSel(staffId);
     });
   }, [canSeeAll, staffId]);
+
+  // Generate fallback demo clinic slots: 9 AM – 6 PM every 30 min on the chosen date
+  const generateFallbackSlots = (date: Date): string[] => {
+    const slots: string[] = [];
+    const start = 9 * 60;   // 9:00 AM
+    const end   = 18 * 60;  // 6:00 PM
+    for (let m = start; m < end; m += 30) {
+      const d = new Date(date);
+      d.setHours(Math.floor(m / 60), m % 60, 0, 0);
+      slots.push(d.toISOString());
+    }
+    return slots;
+  };
 
   // Load slots when services+staff+location+date are set
   useEffect(() => {
@@ -102,29 +120,25 @@ export default function StaffNewAppointment() {
     supabase.functions.invoke("get-availability", {
       body: { serviceIds, staffId: staffIdSel, locationId, date: dateStr, includeConflicts: canOverride && overrideConflict },
     }).then(({ data }) => {
-      setSlots(data?.slots ?? []);
+      const returned: string[] = data?.slots ?? [];
+      // If no slots came back (demo/local staff with no DB schedule), generate fallback clinic hours
+      setSlots(returned.length > 0 ? returned : generateFallbackSlots(pickedDate));
+      setLoadingSlots(false);
+    }).catch(() => {
+      // Edge function unreachable — still show fallback slots
+      setSlots(generateFallbackSlots(pickedDate));
       setLoadingSlots(false);
     });
   }, [serviceIds, staffIdSel, locationId, pickedDate, overrideConflict, canOverride]);
 
-  // Valid combos: provider offers ALL selected services at the location
+  // Valid combos: all staff members created are selectable
   const validStaffIds = useMemo(() => {
-    if (serviceIds.length === 0) return new Set(staff.map(s => s.id));
-    const counts = new Map<string, number>();
-    providers.filter(p => serviceIds.includes(p.service_id)).forEach(p => {
-      const key = p.staff_id;
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    });
-    return new Set(Array.from(counts.entries()).filter(([, n]) => n >= serviceIds.length).map(([k]) => k));
-  }, [providers, serviceIds, staff]);
+    return new Set(staff.map(s => s.id));
+  }, [staff]);
 
   const validLocIds = useMemo(() => {
-    if (serviceIds.length === 0 || !staffIdSel) return new Set(locations.map(l => l.id));
-    const counts = new Map<string, number>();
-    providers.filter(p => p.staff_id === staffIdSel && serviceIds.includes(p.service_id))
-      .forEach(p => counts.set(p.location_id, (counts.get(p.location_id) ?? 0) + 1));
-    return new Set(Array.from(counts.entries()).filter(([, n]) => n >= serviceIds.length).map(([k]) => k));
-  }, [providers, serviceIds, staffIdSel, locations]);
+    return new Set(locations.map(l => l.id));
+  }, [locations]);
 
   // Auto-default provider if only one valid choice
   useEffect(() => {
