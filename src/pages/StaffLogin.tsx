@@ -362,50 +362,34 @@ export default function StaffLogin() {
               <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
                 <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
                 <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
-<<<<<<< HEAD
-                <div className={`grid gap-2 ${(!roleParam || (roleParam !== "admin" && roleParam !== "staff")) ? "grid-cols-2" : "grid-cols-1"}`}>
+                <div className={`grid gap-2 ${roleParam === "admin" ? "grid-cols-2" : roleParam === "staff" ? "grid-cols-1" : "grid-cols-3"}`}>
                   {roleParam !== "staff" && (
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("admin@gmail.com")}
-                      className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                      className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
                     >
-                      👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground">admin@gmail.com</span>
+                      👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground truncate block">admin@gmail.com</span>
+                    </button>
+                  )}
+                  {roleParam !== "staff" && (
+                    <button
+                      type="button"
+                      onClick={() => fillDemoCredentials("officer@gmail.com")}
+                      className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition text-left text-xs font-medium cursor-pointer text-emerald-800 dark:text-emerald-300"
+                    >
+                      🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
                     </button>
                   )}
                   {roleParam !== "admin" && (
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("staff@gmail.com")}
-                      className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                      className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
                     >
-                      🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground">staff@gmail.com</span>
+                      🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
                     </button>
                   )}
-=======
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials("admin@gmail.com")}
-                    className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
-                  >
-                    👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground truncate block">admin@gmail.com</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials("officer@gmail.com")}
-                    className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition text-left text-xs font-medium cursor-pointer text-emerald-800 dark:text-emerald-300"
-                  >
-                    🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => fillDemoCredentials("staff@gmail.com")}
-                    className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
-                  >
-                    🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
-                  </button>
->>>>>>> c4a92dcd405d606c32ccee0d38e67829027a872b
                 </div>
               </div>
 

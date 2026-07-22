@@ -8,6 +8,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 
 import { supabase } from "@/integrations/supabase/client";
 import GoogleReviewBadge from "@/components/GoogleReviewBadge";
+import drFobiImg from "@/assets/dr-fobi.jpg";
 
 
 const WHAT_WE_DO = [
@@ -236,7 +237,7 @@ const Index = () => {
             <div className="order-1 md:order-2">
               <div className="relative aspect-[4/5] max-w-md mx-auto md:ml-auto md:mr-0 overflow-hidden rounded-2xl border border-border bg-secondary">
                 <img
-                  src="/__l5e/assets-v1/8be2657f-9188-4477-82d7-914fb9ff5011/dr-fobi.jpg"
+                  src={drFobiImg}
                   alt="Dr. Aloysius N. Fobi, MD — Medical Director at Radiantilyk Aesthetic"
                   className="absolute inset-0 w-full h-full object-cover object-top"
                   loading="lazy"
