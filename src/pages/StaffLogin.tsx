@@ -376,9 +376,9 @@ export default function StaffLogin() {
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("officer@gmail.com")}
-                      className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition text-left text-xs font-medium cursor-pointer text-emerald-800 dark:text-emerald-300"
+                      className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
                     >
-                      🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
+                      🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] text-muted-foreground truncate block">officer@gmail.com</span>
                     </button>
                   )}
                   {roleParam !== "admin" && (

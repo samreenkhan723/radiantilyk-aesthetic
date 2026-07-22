@@ -14,7 +14,10 @@ export async function getClientSession(): Promise<Session | null> {
   if (raw) {
     try {
       const parsed = JSON.parse(raw);
-      return { user: parsed.user, access_token: "demo-token", refresh_token: "demo-refresh" } as Session;
+      const isStaffOrAdmin = Array.isArray(parsed.roles) && parsed.roles.length > 0;
+      if (!isStaffOrAdmin) {
+        return { user: parsed.user, access_token: "demo-token", refresh_token: "demo-refresh" } as Session;
+      }
     } catch (e) {}
   }
   const { data: { session } } = await supabase.auth.getSession();
@@ -31,9 +34,12 @@ export function useClientAuth(): ClientAuthState {
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
-          setSession({ user: parsed.user, access_token: "demo-token", refresh_token: "demo-refresh" } as Session);
-          setLoading(false);
-          return true;
+          const isStaffOrAdmin = Array.isArray(parsed.roles) && parsed.roles.length > 0;
+          if (!isStaffOrAdmin) {
+            setSession({ user: parsed.user, access_token: "demo-token", refresh_token: "demo-refresh" } as Session);
+            setLoading(false);
+            return true;
+          }
         } catch (e) {}
       }
       return false;
@@ -51,14 +57,19 @@ export function useClientAuth(): ClientAuthState {
     window.addEventListener("rka_demo_auth_change", handleDemoChange);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, s) => {
-      if (sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session")) return;
+      const raw = sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed.roles || parsed.roles.length === 0) return;
+        } catch (e) {}
+      }
       setSession(s);
       setLoading(false);
     });
 
     if (!checkDemo()) {
       supabase.auth.getSession().then(({ data: { session: s } }) => {
-        if (sessionStorage.getItem("rka_demo_session") || localStorage.getItem("rka_demo_session")) return;
         setSession(s);
         setLoading(false);
       });
