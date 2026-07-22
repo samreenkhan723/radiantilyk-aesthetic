@@ -9,7 +9,7 @@ import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { Loader2, ShieldAlert, ShieldCheck, Check } from "lucide-react";
 import { toast } from "sonner";
 
-import { setDemoAuthSession, clearDemoAuthSession } from "@/hooks/useAuth";
+import { setDemoAuthSession, clearDemoAuthSession, AppRole } from "@/hooks/useAuth";
 
 type Step = "credentials" | "mfa-enroll" | "mfa-verify" | "redirecting";
 type Mode = "loading" | "ready";
