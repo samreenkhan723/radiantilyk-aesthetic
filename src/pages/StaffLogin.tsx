@@ -9,7 +9,7 @@ import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
 import { Loader2, ShieldAlert, ShieldCheck, Check } from "lucide-react";
 import { toast } from "sonner";
 
-import { setDemoAuthSession, clearDemoAuthSession } from "@/hooks/useAuth";
+import { setDemoAuthSession, clearDemoAuthSession, AppRole } from "@/hooks/useAuth";
 
 type Step = "credentials" | "mfa-enroll" | "mfa-verify" | "redirecting";
 type Mode = "loading" | "ready";
@@ -384,6 +384,10 @@ export default function StaffLogin() {
                   >
                     🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
                   </button>
+<<<<<<< HEAD
+=======
+
+>>>>>>> 3d4389b81d91544b7dd5aaf154fbf3819e112f3d
                 </div>
               </div>
 

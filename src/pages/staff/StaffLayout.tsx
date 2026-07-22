@@ -367,6 +367,7 @@ export default function StaffLayout() {
             <span className="hidden sm:inline">{isAdmin ? "Admin Portal" : "Staff Portal"}</span>
             <span className="sm:hidden">{isAdmin ? "Admin" : "Staff"}</span>
           </div>
+<<<<<<< HEAD
           <span className="text-xs text-muted-foreground hidden lg:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
         </div>
 
@@ -395,6 +396,9 @@ export default function StaffLayout() {
             <LogOut className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
+=======
+
+>>>>>>> 3d4389b81d91544b7dd5aaf154fbf3819e112f3d
         </div>
       </header>
 
