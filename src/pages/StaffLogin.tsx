@@ -40,6 +40,7 @@ export default function StaffLogin() {
   const [sp] = useSearchParams();
   const reason = sp.get("reason");
   const nextParam = sp.get("next");
+  const roleParam = sp.get("role");
   // Only allow same-origin relative paths to prevent open redirects.
   const nextPath = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
     ? nextParam
@@ -361,6 +362,27 @@ export default function StaffLogin() {
               <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
                 <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
                 <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
+<<<<<<< HEAD
+                <div className={`grid gap-2 ${(!roleParam || (roleParam !== "admin" && roleParam !== "staff")) ? "grid-cols-2" : "grid-cols-1"}`}>
+                  {roleParam !== "staff" && (
+                    <button
+                      type="button"
+                      onClick={() => fillDemoCredentials("admin@gmail.com")}
+                      className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                    >
+                      👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground">admin@gmail.com</span>
+                    </button>
+                  )}
+                  {roleParam !== "admin" && (
+                    <button
+                      type="button"
+                      onClick={() => fillDemoCredentials("staff@gmail.com")}
+                      className="px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                    >
+                      🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground">staff@gmail.com</span>
+                    </button>
+                  )}
+=======
                 <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
@@ -383,6 +405,7 @@ export default function StaffLogin() {
                   >
                     🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
                   </button>
+>>>>>>> c4a92dcd405d606c32ccee0d38e67829027a872b
                 </div>
               </div>
 

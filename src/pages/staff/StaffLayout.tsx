@@ -318,12 +318,12 @@ export default function StaffLayout() {
   );
 
   return (
-    <div className="h-screen overflow-hidden bg-background flex flex-col">
+    <div className="h-[100dvh] w-full overflow-hidden bg-background flex flex-col">
       {/* Top Full-width Portal Header Bar */}
       <header className="w-full border-b border-border bg-card/80 backdrop-blur px-4 md:px-6 py-3 flex items-center justify-between z-30 shrink-0">
-        {/* Left Corner: Mobile Menu & Portal Badge */}
-        <div className="flex items-center gap-2 sm:gap-3">
-          <div className="md:hidden">
+        {/* Left Corner: Mobile Menu & Company Logo */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="xl:hidden">
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="-ml-2"><Menu className="h-5 w-5" /></Button>
@@ -351,11 +351,24 @@ export default function StaffLayout() {
             </Sheet>
           </div>
 
+          <Link to={isAdmin ? "/staff/admin" : "/staff/today"} className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition">
+            <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover shadow-soft" />
+            <div className="text-left hidden sm:block">
+              <div className="font-serif text-sm leading-tight font-medium">Radiantilyk Aesthetic</div>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{isAdmin ? "Admin Dashboard" : "Staff Hub"}</div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Right Corner: Portal Badge */}
+        <div className="flex items-center gap-3 md:gap-4">
           <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${isAdmin ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : "bg-primary/10 text-primary border border-primary/20"}`}>
             <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             <span className="hidden sm:inline">{isAdmin ? "Admin Portal" : "Staff Portal"}</span>
             <span className="sm:hidden">{isAdmin ? "Admin" : "Staff"}</span>
           </div>
+<<<<<<< HEAD
+=======
           <span className="text-xs text-muted-foreground hidden lg:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
         </div>
 
@@ -384,6 +397,7 @@ export default function StaffLayout() {
             <LogOut className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
+>>>>>>> c4a92dcd405d606c32ccee0d38e67829027a872b
         </div>
       </header>
 
@@ -392,7 +406,7 @@ export default function StaffLayout() {
 
 
         {/* Desktop Sidebar */}
-        <aside className="hidden md:flex flex-col w-64 border-r border-border bg-card p-4 shrink-0 justify-between">
+        <aside className="hidden xl:flex flex-col w-64 border-r border-border bg-card p-4 shrink-0 justify-between">
           <div className="space-y-4 overflow-y-auto pr-1">
             <nav className="space-y-1">{NavInner}</nav>
           </div>
