@@ -30,12 +30,6 @@ export default function ClientAuth() {
     firstName: "", lastName: "", email: "", phone: "", password: "",
   });
 
-  useEffect(() => {
-    getClientSession().then((session) => {
-      if (session) navigate("/account", { replace: true });
-    });
-  }, [navigate]);
-
   const fillClientDemoCredentials = () => {
     setForm((f) => ({ ...f, email: "user@gmail.com", password: "12345678" }));
     toast.info("Demo User credentials populated in Email & Password fields. Click Sign in to proceed.");
