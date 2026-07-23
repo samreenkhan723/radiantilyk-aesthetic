@@ -384,10 +384,6 @@ export default function StaffLogin() {
                   >
                     🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
                   </button>
-<<<<<<< HEAD
-=======
-
->>>>>>> 3d4389b81d91544b7dd5aaf154fbf3819e112f3d
                 </div>
               </div>
 
