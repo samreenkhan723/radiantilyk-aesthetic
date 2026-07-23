@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { fetchIncompleteCharts, type IncompleteChart } from "@/lib/incompleteCharts";
 
 export default function StaffClinical() {
-  const { user, isClinicalStaff, isNP, isAdmin, canSeeAll, staffId, loading: authLoading } = useAuth();
+  const { user, isClinicalStaff, isNP, isMedicalDirector, isAdmin, canSeeAll, staffId, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [lookup, setLookup] = useState("");
   const [loading, setLoading] = useState(true);
@@ -176,8 +176,8 @@ export default function StaffClinical() {
 
       {!loading && (
         <>
-          {(isNP || isAdmin) && needsCosign.length > 0 && (
-            <Section title={`Awaiting NP co-signature (${needsCosign.length})`} accent>
+          {(isNP || isMedicalDirector || isAdmin) && needsCosign.length > 0 && (
+            <Section title={`Awaiting co-signature (${needsCosign.length})`} accent>
               {needsCosign.map(n => <NoteRow key={n.id} n={n} />)}
             </Section>
           )}

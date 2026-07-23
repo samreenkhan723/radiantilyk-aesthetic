@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session, User } from "@supabase/supabase-js";
 
-export type AppRole = "admin" | "staff" | "scheduler" | "nurse_practitioner" | "receptionist" | "privacy_officer";
+export type AppRole = "admin" | "staff" | "scheduler" | "nurse_practitioner" | "medical_director" | "receptionist" | "privacy_officer";
 
 export interface AuthState {
   session: Session | null;
@@ -15,11 +15,12 @@ export interface AuthState {
   isReceptionist: boolean;
   isStaff: boolean;
   isNP: boolean;
+  isMedicalDirector: boolean;
   isPrivacyOfficer: boolean;
   isClinicalStaff: boolean;
-  isPrivileged: boolean; // admin OR provider (staff) OR nurse_practitioner
-  canSeeAll: boolean; // admin OR scheduler OR receptionist OR nurse practitioner
-  canOverride: boolean; // admin OR scheduler OR receptionist OR nurse practitioner (matches is_scheduler_or_admin)
+  isPrivileged: boolean; // admin OR provider (staff) OR nurse_practitioner OR medical_director
+  canSeeAll: boolean; // admin OR scheduler OR receptionist OR nurse practitioner OR medical_director
+  canOverride: boolean; // admin OR scheduler OR receptionist OR nurse practitioner OR medical_director
 }
 
 export function setDemoAuthSession(email: string, roles: AppRole[], staffId?: string) {
@@ -142,11 +143,12 @@ export function useAuth(): AuthState {
   const isReceptionist = roles.includes("receptionist");
   const isStaff = roles.includes("staff");
   const isNP = roles.includes("nurse_practitioner");
+  const isMedicalDirector = roles.includes("medical_director");
   const isPrivacyOfficer = isAdmin || roles.includes("privacy_officer");
-  const isClinicalStaff = isAdmin || isStaff || isScheduler || isNP;
-  const isPrivileged = isAdmin || isStaff || isNP || isPrivacyOfficer;
-  const canOverride = isAdmin || isScheduler || isReceptionist || isNP;
-  const canSeeAll = canOverride || isNP;
+  const isClinicalStaff = isAdmin || isStaff || isScheduler || isNP || isMedicalDirector;
+  const isPrivileged = isAdmin || isStaff || isNP || isMedicalDirector || isPrivacyOfficer;
+  const canOverride = isAdmin || isScheduler || isReceptionist || isNP || isMedicalDirector;
+  const canSeeAll = canOverride || isNP || isMedicalDirector;
   return {
     session,
     user: session?.user ?? null,
@@ -158,6 +160,7 @@ export function useAuth(): AuthState {
     isReceptionist,
     isStaff,
     isNP,
+    isMedicalDirector,
     isPrivacyOfficer,
     isClinicalStaff,
     isPrivileged,
