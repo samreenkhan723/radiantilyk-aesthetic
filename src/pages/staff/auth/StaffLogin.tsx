@@ -449,7 +449,7 @@ export default function StaffLogin() {
                     </>
                   )}
                 </div>
-
+              </div>
 
               <form onSubmit={submitCredentials} className="space-y-5">
                 <div>
