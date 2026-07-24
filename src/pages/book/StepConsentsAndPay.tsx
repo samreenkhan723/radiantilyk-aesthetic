@@ -58,12 +58,13 @@ export const StepConsentsAndPay = ({
       : "All set — continue";
 
     return (
-      <div>
-        <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-3">Read & agree.</h1>
-        <p className="text-muted-foreground mb-6">
-          Tap each card to read. Then type your name and sign once below — your signature
-          is applied to every form you accept. Next we'll save a card on file (no charge today).
-        </p>
+      <div className="max-w-3xl mx-auto">
+        <div className="pb-3 mb-4 border-b border-border/50">
+          <h1 className="font-serif text-2xl sm:text-3xl font-normal tracking-tight">Read & agree</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Review and accept required forms below. Sign once to apply your signature across all forms.
+          </p>
+        </div>
 
         {loading && (
           <div className="flex items-center gap-2 text-muted-foreground py-8">
@@ -72,8 +73,8 @@ export const StepConsentsAndPay = ({
         )}
 
         {!loading && alreadySigned.length > 0 && (
-          <div className="rounded-2xl border border-border bg-secondary/30 p-4 mb-6">
-            <div className="flex items-center gap-2 text-sm font-medium mb-2">
+          <div className="rounded-xl border border-border bg-secondary/30 p-3.5 mb-4">
+            <div className="flex items-center gap-2 text-xs font-medium mb-1.5">
               <ShieldCheck className="h-4 w-4 text-primary" /> Already on file
             </div>
             <ul className="text-xs text-muted-foreground space-y-1">
@@ -87,7 +88,7 @@ export const StepConsentsAndPay = ({
         )}
 
         {!loading && toSign.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {toSign.map(form => (
               <div
                 key={form.id}
@@ -106,10 +107,9 @@ export const StepConsentsAndPay = ({
           </div>
         )}
 
-
         {!loading && toSign.length > 0 && (
-          <div className="mt-8 scroll-mt-24" id="shared-consent-signer">
-            <h2 className="font-serif text-xl mb-3">Sign once for all forms above</h2>
+          <div className="mt-6 scroll-mt-24" id="shared-consent-signer">
+            <h2 className="font-serif text-lg mb-2">Sign once for all forms above</h2>
             <SharedConsentSigner
               defaultName={clientName}
               name={sharedName}
@@ -125,7 +125,7 @@ export const StepConsentsAndPay = ({
         )}
 
         <div className="md:hidden h-28" aria-hidden />
-        <div className="fixed bottom-0 inset-x-0 md:static md:mt-8 bg-background/95 backdrop-blur md:backdrop-blur-none border-t md:border-0 border-border p-4 md:p-0 z-30 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="fixed bottom-0 inset-x-0 md:static md:mt-6 bg-background/95 backdrop-blur md:backdrop-blur-none border-t md:border-0 border-border p-4 md:p-0 z-30 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <div className="text-xs text-muted-foreground text-center sm:text-left flex-1">{hint}</div>
             <Button
@@ -145,7 +145,7 @@ export const StepConsentsAndPay = ({
                 }
               }}
               size="lg"
-              className={`rounded-full px-8 w-full sm:w-auto h-12 ${allConsentsSatisfied ? "" : "opacity-60"}`}
+              className={`rounded-full px-8 w-full sm:w-auto h-11 text-sm font-medium ${allConsentsSatisfied ? "" : "opacity-60"}`}
               aria-disabled={!allConsentsSatisfied}
             >
               Continue to card on file <ArrowRight className="ml-2 h-4 w-4" />
@@ -157,59 +157,65 @@ export const StepConsentsAndPay = ({
   }
 
   return (
-    <div>
-      <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-3">Card on file.</h1>
-      <p className="text-muted-foreground mb-6">
-        We don't charge anything today. Your card is only used for the service you receive or a no-show / late cancel.
-      </p>
+    <div className="max-w-3xl mx-auto">
+      {/* Header & Booking Summary Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 mb-4 border-b border-border/50">
+        <div>
+          <h1 className="font-serif text-2xl sm:text-3xl font-normal tracking-tight">Card on file</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">No charge today — your card holds your appointment slot.</p>
+        </div>
 
-      <div className="rounded-2xl bg-secondary/50 p-5 mb-6 text-sm">
-        <div className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-1">You're confirming</div>
-        <div className="font-serif text-lg">{summary.serviceName}</div>
-        <div className="text-muted-foreground mt-1 flex flex-wrap gap-x-4 gap-y-0.5 text-xs">
-          <span>with {summary.staffName}</span>
-          <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {summary.locationName}</span>
-          <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {format(new Date(summary.startAt), "EEE, MMM d · h:mm a")}</span>
+        <div className="text-xs bg-secondary/60 border border-border/60 rounded-xl px-3 py-2 flex flex-wrap items-center gap-x-3 gap-y-1 shrink-0">
+          <span className="font-medium text-foreground">{summary.serviceName}</span>
+          <span className="text-muted-foreground/40">•</span>
+          <span className="text-muted-foreground flex items-center gap-1">
+            <Clock className="h-3 w-3 text-primary/70" />
+            {format(new Date(summary.startAt), "EEE, MMM d @ h:mm a")}
+          </span>
+          <span className="text-muted-foreground/40 hidden sm:inline">•</span>
+          <span className="text-muted-foreground flex items-center gap-1">
+            <MapPin className="h-3 w-3 text-primary/70" />
+            {summary.locationName} ({summary.staffName})
+          </span>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-5 space-y-4">
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-4 shadow-xs">
         <div id="book-card-section" className="scroll-mt-24">
+          <div className="flex items-center justify-between mb-2">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Card on file *</Label>
+            <span className="text-[11px] text-muted-foreground">Saved securely with Stripe</span>
+          </div>
 
-          <Label className="text-xs uppercase tracking-widest text-muted-foreground">Card on file *</Label>
-          <p className="text-xs text-muted-foreground mt-1.5 mb-2">
-            Saved securely with Stripe — not charged today.
-          </p>
           <CardOnFile ref={cardRef} ready={!submitting} />
           {cardError && (
-            <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive flex items-start justify-between gap-2">
+            <div className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 p-2.5 text-xs text-destructive flex items-start justify-between gap-2">
               <span>{cardError}</span>
               <button type="button" onClick={clearCardError} className="underline shrink-0">Dismiss</button>
             </div>
           )}
         </div>
 
-        <div className="rounded-lg bg-secondary/40 p-3 text-xs text-muted-foreground leading-relaxed">
-          <span className="font-medium text-foreground">Cancellation policy.</span> Free reschedule or cancel up to 48 hours before your visit.
-          Within 48 hours, a <span className="font-medium text-foreground">$200 late-cancellation fee</span> will be charged to your card on file.
+        <div className="rounded-xl border border-border/70 bg-muted/20 p-3 space-y-2 text-xs">
+          <label className="flex items-start gap-2.5 cursor-pointer" id="book-acknowledge-label">
+            <Checkbox id="book-acknowledge" checked={acknowledged} onCheckedChange={(v) => setAcknowledged(!!v)} className="mt-0.5 shrink-0" />
+            <span className="text-xs leading-snug text-foreground/90 font-medium">
+              I understand the cancellation policy ($200 fee if cancelled within 48 hours). <span className="text-muted-foreground font-normal">No charge today.</span> <span className="text-destructive font-bold">*</span>
+            </span>
+          </label>
+          <p className="text-[11px] text-muted-foreground pl-6 leading-tight">
+            Free rescheduling or cancellation up to 48 hours before your scheduled appointment.
+          </p>
         </div>
-
-        <label className="flex items-start gap-3 cursor-pointer" id="book-acknowledge-label">
-          <Checkbox id="book-acknowledge" checked={acknowledged} onCheckedChange={(v) => setAcknowledged(!!v)} />
-          <span className="text-sm leading-snug">
-            I understand the cancellation policy. My card will only be charged if I no-show or cancel
-            with less than 48 hours notice ($200 fee). <span className="text-muted-foreground">No charge is made today.</span>
-          </span>
-        </label>
       </div>
 
-      <div className="md:hidden h-24" aria-hidden />
-      <div className="fixed bottom-0 inset-x-0 md:static md:mt-8 bg-background/95 backdrop-blur md:backdrop-blur-none border-t md:border-0 border-border p-4 md:p-0 z-30">
+      <div className="md:hidden h-20" aria-hidden />
+      <div className="fixed bottom-0 inset-x-0 md:static md:mt-5 bg-background/95 backdrop-blur md:backdrop-blur-none border-t md:border-0 border-border p-4 md:p-0 z-30">
         <Button
           onClick={onSubmit}
           disabled={submitting || !allConsentsSatisfied || !acknowledged}
           size="lg"
-          className="rounded-full px-10 w-full md:w-auto shadow-elegant"
+          className="rounded-full px-8 w-full md:w-auto font-medium shadow-elegant"
         >
           {submitting
             ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Submitting…</>
