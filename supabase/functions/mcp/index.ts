@@ -3,6 +3,10 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // lovable-mcp-supabase-entry.ts
+<<<<<<< HEAD
 import mcp from "npm:C:\\Users\\HGP\\Desktop\\intern projects\\Radiantilyk\\radiantilyk-aesthetic\\src\\lib\\mcp\\index.ts";
+=======
+import mcp from "npm:C:\\Users\\dell\\Desktop\\Kiaan Technology\\radiantilyk-aesthetic\\src\\lib\\mcp\\index.ts";
+>>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb
 import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.23.0/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp, { functionName: "mcp" }));

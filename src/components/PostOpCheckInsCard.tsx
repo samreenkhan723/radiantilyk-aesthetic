@@ -4,6 +4,7 @@
 // outcomes dataset (postop_checkins) used to identify complications early.
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getClientSession } from "@/hooks/useClientAuth";
 import { differenceInCalendarDays, format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -258,3 +259,4 @@ function ScaleRow({ label, value, onChange }: { label: string; value: number | u
     </div>
   );
 }
+
