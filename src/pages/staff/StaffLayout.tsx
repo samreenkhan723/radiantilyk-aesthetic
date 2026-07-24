@@ -379,7 +379,6 @@ export default function StaffLayout() {
               {isAdmin ? "Admin" : (!isAdmin && roles.includes("privacy_officer")) ? "Security Officer" : "Staff"}
             </span>
           </div>
-<<<<<<< HEAD
           <span className="text-xs text-muted-foreground hidden lg:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
         </div>
 
@@ -408,8 +407,6 @@ export default function StaffLayout() {
             <LogOut className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
-=======
->>>>>>> ee3018d0cdbace8e230801e3d3ea1de86a40240b
         </div>
       </header>
 
