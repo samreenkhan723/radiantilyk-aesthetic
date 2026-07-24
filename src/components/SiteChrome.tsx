@@ -30,28 +30,21 @@ export const SiteHeader = ({ isPortal = false }: { isPortal?: boolean }) => {
         Skip to main content
       </a>
       <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-40">
-        <div className="hidden md:block bg-secondary/50 text-xs">
-          <div className="container mx-auto flex items-center justify-between py-2 text-muted-foreground">
-            <div className="flex items-center gap-6">
-              <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-primary" /> San Jose · 2100 Curtner Ave, Ste 1B</span>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <a href="sms:+14083511873" className="hover:text-foreground">Text us</a>
-              <span className="opacity-30">·</span>
-              <a href="tel:4083511873" className="flex items-center gap-1.5 hover:text-foreground"><Phone className="h-3 w-3" /> 408 · 351 · 1873</a>
-            </div>
-          </div>
-        </div>
-        <div className="container mx-auto px-4 flex items-center justify-between py-4 gap-3">
-          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 leading-tight min-w-0 md:mr-auto">
-            <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover shadow-soft shrink-0" />
+        <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between py-3 gap-3">
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 leading-tight min-w-0 md:mr-auto group">
+            <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-10 w-10 sm:h-11 sm:w-11 rounded-full object-cover shadow-soft shrink-0" />
             <div className="flex flex-col min-w-0">
-              <span className="font-serif text-lg sm:text-2xl tracking-wide truncate">
-                <span className="sm:hidden">Radiantilyk</span>
-                <span className="hidden sm:inline">Radiantilyk Aesthetic</span>
+              <span className="font-serif text-base sm:text-xl font-medium tracking-tight truncate">
+                Radiantilyk Aesthetic
               </span>
-              <span className="hidden sm:inline text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Medspa</span>
+              <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground tracking-wider uppercase">
+                <span className="font-semibold text-primary">MEDSPA</span>
+                <span className="opacity-40">•</span>
+                <span className="hidden sm:flex items-center gap-1 font-normal normal-case text-[11px] text-muted-foreground truncate">
+                  <MapPin className="h-3 w-3 text-primary shrink-0" />
+                  San Jose · 2100 Curtner Ave, Ste 1B
+                </span>
+              </div>
             </div>
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm">
