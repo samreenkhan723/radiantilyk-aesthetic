@@ -409,14 +409,8 @@ export default function StaffLogin() {
               <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
                 <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
                 <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
-<<<<<<< HEAD:src/pages/staff/auth/StaffLogin.tsx
                 <div className={`grid gap-2 ${roleParam === "admin" ? "grid-cols-2" : roleParam === "staff" ? "grid-cols-1" : "grid-cols-3"}`}>
                   {roleParam !== "staff" && (
-=======
-
-                {activeRole === "admin" && (
-                  <div className="grid grid-cols-1 gap-2">
->>>>>>> af9eb221f0523207d0ebb8ffbb7a29d052d3106f:src/pages/StaffLogin.tsx
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("admin@gmail.com")}
@@ -428,56 +422,34 @@ export default function StaffLogin() {
                       </div>
                       <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded">Full Admin Access</span>
                     </button>
-                  </div>
-                )}
-
-                {activeRole === "staff" && (
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials("md@gmail.com")}
-                      className="px-2 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition text-left text-xs font-medium cursor-pointer text-purple-900 dark:text-purple-300"
-                    >
-                      🩺 <strong>Medical Director</strong><br /><span className="text-[10px] opacity-80 truncate block">md@gmail.com</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials("officer@gmail.com")}
-                      className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition text-left text-xs font-medium cursor-pointer text-emerald-800 dark:text-emerald-300"
-                    >
-                      🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials("staff@gmail.com")}
-                      className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
-                    >
-                      💉 <strong>Staff / Nurse</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
-                    </button>
-<<<<<<< HEAD:src/pages/staff/auth/StaffLogin.tsx
+                  )}
+                  {roleParam !== "admin" && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => fillDemoCredentials("md@gmail.com")}
+                        className="px-2 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition text-left text-xs font-medium cursor-pointer text-purple-900 dark:text-purple-300"
+                      >
+                        🩺 <strong>Medical Director</strong><br /><span className="text-[10px] opacity-80 truncate block">md@gmail.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fillDemoCredentials("officer@gmail.com")}
+                        className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition text-left text-xs font-medium cursor-pointer text-emerald-800 dark:text-emerald-300"
+                      >
+                        🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fillDemoCredentials("staff@gmail.com")}
+                        className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                      >
+                        💉 <strong>Staff / Nurse</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
+                      </button>
+                    </>
                   )}
                 </div>
-=======
-                  </div>
-                )}
 
-                {activeRole === "user" && (
-                  <div className="grid grid-cols-1 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials("user@gmail.com")}
-                      className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
-                    >
-                      <div>
-                        👤 <strong>Patient / User</strong>
-                        <span className="text-[10px] text-muted-foreground block font-mono">user@gmail.com</span>
-                      </div>
-                      <span className="text-[10px] bg-secondary text-secondary-foreground font-semibold px-2 py-0.5 rounded">Client Portal</span>
-                    </button>
-                  </div>
-                )}
->>>>>>> af9eb221f0523207d0ebb8ffbb7a29d052d3106f:src/pages/StaffLogin.tsx
-              </div>
 
               <form onSubmit={submitCredentials} className="space-y-5">
                 <div>
