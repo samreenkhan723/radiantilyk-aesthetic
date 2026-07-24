@@ -452,11 +452,7 @@ export default function StaffLogin() {
                 </div>
               </div>
 
-<<<<<<< HEAD
-              <form onSubmit={submitCredentials} className="space-y-5">
-=======
               <form onSubmit={submitCredentials} className="space-y-3">
->>>>>>> 75cecb66da4d45fc962ea85f997d75a7113242ad
                 <div>
                   <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
                   <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 h-9 text-sm" />
