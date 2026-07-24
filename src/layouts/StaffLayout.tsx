@@ -341,7 +341,6 @@ export default function StaffLayout() {
               {roles.includes("privacy_officer") ? "Security Officer" : "Staff"}
             </span>
           </div>
-<<<<<<< HEAD:src/pages/staff/StaffLayout.tsx
           <span className="text-xs text-muted-foreground hidden lg:inline">Radiantilyk Healthcare & HIPAA Compliance Platform</span>
         </div>
 
@@ -370,8 +369,6 @@ export default function StaffLayout() {
             <LogOut className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Sign Out</span>
           </Button>
-=======
->>>>>>> 86cf93cbaf235afc8428fd172592283be07940e2:src/layouts/StaffLayout.tsx
         </div>
       </header>
 
