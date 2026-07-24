@@ -7,25 +7,23 @@ import { useEffect, useState } from "react";
 import { usePageMeta } from "@/hooks/usePageMeta";
 
 import { supabase } from "@/integrations/supabase/client";
-import GoogleReviewBadge from "@/components/GoogleReviewBadge";
 import drFobiImg from "@/assets/dr-fobi.jpg";
-
+import heroLeftImg from "@/assets/hero-left.png";
+import heroRightImg from "@/assets/hero-right.png";
 
 const WHAT_WE_DO = [
   { icon: Syringe, title: "Injectables", desc: "Botox, filler, lip enhancement", href: "/services#injectables" },
   { icon: Zap, title: "Lasers & Energy", desc: "Hair removal, IPL, resurfacing", href: "/services#lasers" },
   { icon: Droplet, title: "Skin & Facials", desc: "Peels, microneedling, glow", href: "/services#skin" },
-  { icon: HeartPulse, title: "Medical Wellness", desc: "GLP-1, HRT, peptides", href: "/services#wellness" },
+  { icon: HeartPulse, title: "Medical Wellness", desc: "IV drip, IM, HRT, peptides", href: "/services#wellness" },
 ];
 
-// Fallback reviews shown only if the live testimonials view hasn't loaded yet
-// (or returns empty). The /reviews page reads the same `public_testimonials`
-// view, so the homepage strip and the full list now stay in sync.
 const FALLBACK_REVIEWS = [
-  { quote: "Kiem is incredibly skilled and made me feel completely at ease. Natural results, every time.", author: "Sarah M.", location: "San Jose" },
-  { quote: "Honest recommendations — they'll tell you when you don't need something. That earned my trust.", author: "Priya R.", location: "San Jose" },
-  { quote: "The space is gorgeous and the care is next level. Worth every mile of the drive.", author: "Jessica L.", location: "San Jose" },
+  { quote: "Kien is the most awesome provider! Love her!", author: "Ann", location: "San Jose" },
+  { quote: "I have never loved my skin as much as I do since Kien started taking care of it. Thanks to Kien's expertise and care, my skin has never looked better. I constantly receive compliments on how beautiful and healthy it looks, and I owe that to Kien. I highly recommend Kien to anyone looking for exceptional skincare treatments and results!", author: "Jenny", location: "San Jose" },
+  { quote: "I had a great experience. Kien was very personable, professional, and kind through every step, and checked in throughout my procedure. I received great results.", author: "Cheri", location: "San Jose" },
 ];
+
 type LiveReview = { id: string; quote: string; author: string; location: string };
 
 const Index = () => {
@@ -43,6 +41,7 @@ const Index = () => {
   );
   const [liveReviews, setLiveReviews] = useState<LiveReview[] | null>(null);
   const [rotationOffset, setRotationOffset] = useState(0);
+
   useEffect(() => {
     supabase.from("locations").select("slug, google_place_id, google_review_url").eq("slug", "san-jose")
       .then(({ data }) => {
@@ -52,9 +51,7 @@ const Index = () => {
           sjUrl: sj?.google_review_url ?? null,
         });
       });
-    // Pull a larger pool of verified 5-star testimonials so the homepage strip
-    // can rotate through every featured client review instead of showing the
-    // same 3 forever.
+
     supabase
       .from("public_testimonials" as any)
       .select("id, comment, first_name, location_city, rating")
@@ -62,19 +59,20 @@ const Index = () => {
       .order("created_at", { ascending: false })
       .limit(30)
       .then(({ data }) => {
-        if (!data || data.length === 0) return; // keep fallback
+        if (!data || data.length === 0) return;
         setLiveReviews(
           (data as any[]).map((t) => ({
             id: t.id,
             quote: t.comment,
             author: t.first_name || "Verified guest",
-            location: t.location_city || "Radiantilyk Aesthetic",
+            location: t.location_city || "San Jose",
           })),
         );
       });
   }, []);
+
   const reviewPool = liveReviews ?? FALLBACK_REVIEWS.map((r, i) => ({ id: `fb-${i}`, ...r }));
-  // Rotate the 3 featured cards every 7s so every client review gets airtime.
+
   useEffect(() => {
     if (reviewPool.length <= 3) return;
     const t = setInterval(() => {
@@ -82,104 +80,121 @@ const Index = () => {
     }, 7000);
     return () => clearInterval(t);
   }, [reviewPool.length]);
+
   const reviewsToShow = reviewPool.length <= 3
     ? reviewPool
     : Array.from({ length: 3 }, (_, i) => reviewPool[(rotationOffset + i) % reviewPool.length]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 font-sans antialiased">
       <SiteHeader />
 
+      {/* Hero Section — 3-Panel Side-by-Side Composition */}
+      <section className="relative w-full bg-secondary/40 dark:bg-background border-b border-border overflow-hidden transition-colors duration-300">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 min-h-[580px] lg:min-h-[680px]">
 
+          {/* Left Image Panel — Archway & Olive Tree */}
+          <div className="hidden lg:block lg:col-span-4 relative overflow-hidden">
+            <img
+              src={heroLeftImg}
+              alt="Radiantilyk Aesthetic Medspa Lounge and Archway"
+              className="absolute -top-2 left-0 w-full h-[calc(100%+12px)] object-cover scale-[1.03] origin-bottom dark:opacity-80 transition-opacity"
+            />
+          </div>
 
+          {/* Center Card Panel — A quiet ritual of refinement */}
+          <div className="col-span-1 lg:col-span-4 flex items-center justify-center p-6 sm:p-10 bg-background lg:bg-secondary/40 dark:lg:bg-background">
+            <div className="w-full max-w-[460px] bg-card/95 dark:bg-card/90 text-card-foreground rounded-xl p-8 sm:p-12 shadow-xl border border-border text-center flex flex-col items-center justify-between min-h-[480px]">
+              {/* Header */}
+              <div className="w-full flex flex-col items-center">
+                <span className="text-[10px] sm:text-[11px] font-semibold tracking-[0.25em] text-primary uppercase">
+                  RADIANTILYK AESTHETIC
+                </span>
+                <div className="w-px h-8 bg-primary/30 my-3" />
+              </div>
 
-      {/* Hero — editorial minimalist chic */}
-      <section className="relative w-full bg-background flex items-center justify-center px-6 py-12 sm:py-20">
-        <div className="relative w-full max-w-[420px] sm:max-w-[480px] aspect-[9/16] overflow-hidden flex flex-col justify-between p-8 sm:p-10 border border-primary/15 bg-background">
-          {/* Decorative corner frames */}
-          <div className="pointer-events-none absolute top-0 right-0 w-24 h-24 border-t border-r border-primary/20 m-4" />
-          <div className="pointer-events-none absolute bottom-0 left-0 w-24 h-24 border-b border-l border-primary/20 m-4" />
+              {/* Headline */}
+              <div className="my-4">
+                <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-card-foreground font-medium leading-[1.08] tracking-tight">
+                  A quiet<br />
+                  <span className="italic font-serif text-primary font-normal">ritual</span><br />
+                  of refinement.
+                </h1>
+              </div>
 
-          {/* Film grain overlay */}
-          <svg
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 w-full h-full opacity-[0.10] mix-blend-multiply"
-          >
-            <filter id="hero-grain">
-              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" />
-              <feColorMatrix type="saturate" values="0" />
-            </filter>
-            <rect width="100%" height="100%" filter="url(#hero-grain)" />
-          </svg>
+              {/* Subheader info block */}
+              <div className="w-full border-t border-border pt-4 mb-6 flex flex-col items-center gap-0.5">
+                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-light">
+                  CONSIDERED CARE
+                </span>
+                <span className="text-xs font-semibold tracking-wider text-card-foreground">
+                  SAN JOSE
+                </span>
+              </div>
 
-          {/* Top — brand identity */}
-          <header className="relative flex flex-col items-center gap-2">
-            <p className="text-primary text-[10px] font-light tracking-luxury uppercase leading-none">
-              Radiantilyk Aesthetic
-            </p>
-            <div className="w-px h-10 bg-primary/30" />
-          </header>
+              {/* CTA Button & Pagination Dots */}
+              <div className="w-full space-y-4">
+                <Button
+                  asChild
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 h-auto text-xs font-medium tracking-[0.2em] uppercase rounded-lg shadow-md transition-all active:scale-[0.98]"
+                >
+                  <Link to={bookHref}>BOOK AN APPOINTMENT</Link>
+                </Button>
 
-          {/* Middle — the ritual (left-aligned, editorial) */}
-          <div className="relative">
-            <h1 className="font-serif text-foreground text-5xl sm:text-6xl leading-[1.05] font-light tracking-tight">
-              A quiet<br/>
-              <span className="italic font-light text-primary">ritual</span><br/>
-              of refinement.
-            </h1>
-
-            <div className="mt-10 flex flex-col gap-1 border-l border-primary pl-4">
-              <p className="text-muted-foreground text-[11px] uppercase tracking-widest font-light">
-                Considered Care
-              </p>
-              <p className="text-foreground text-xs font-medium tracking-wider">
-                SAN JOSE
-              </p>
+                <div className="flex justify-center items-center gap-2 pt-1">
+                  <div className="w-2 h-2 rounded-full bg-primary" />
+                  <div className="w-2 h-2 rounded-full bg-border" />
+                  <div className="w-2 h-2 rounded-full bg-border" />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Bottom — action */}
-          <footer className="relative w-full space-y-6">
-            <div className="flex justify-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-              <div className="w-1.5 h-1.5 rounded-full bg-primary/20" />
-              <div className="w-1.5 h-1.5 rounded-full bg-primary/20" />
-            </div>
+          {/* Right Image Panel — Reception & Logo Sign */}
+          <div className="hidden lg:block lg:col-span-4 relative overflow-hidden">
+            <img
+              src={heroRightImg}
+              alt="Radiantilyk Aesthetic Medspa Reception Desk"
+              className="absolute -top-2 left-0 w-full h-[calc(100%+12px)] object-cover scale-[1.03] origin-bottom dark:opacity-80 transition-opacity"
+            />
+          </div>
 
-            <Button
-              asChild
-              className="w-full rounded-none bg-primary hover:bg-primary/90 text-primary-foreground py-5 h-auto text-[11px] font-medium tracking-[0.25em] uppercase shadow-xl shadow-primary/20 active:scale-[0.98] transition-all"
-            >
-              <Link to={bookHref}>Book an Appointment</Link>
-            </Button>
-          </footer>
         </div>
       </section>
 
-      {/* What we do — fast orientation for first-time visitors */}
-      <section className="border-t border-border bg-secondary/20">
-        <div className="container mx-auto px-6 py-16 sm:py-20">
-          <div className="flex items-end justify-between flex-wrap gap-4 mb-8 sm:mb-10">
+      {/* What We Do Section */}
+      <section className="border-t border-border bg-background py-20 px-6 sm:px-10 transition-colors duration-300">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
             <div>
-              <p className="text-[10px] sm:text-[11px] uppercase tracking-luxury text-primary mb-3">What we do</p>
-              <h2 className="font-serif text-3xl sm:text-4xl">Treatments, simply.</h2>
+              <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold text-primary mb-2">
+                WHAT WE DO
+              </p>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-foreground font-medium">
+                Treatments, simply.
+              </h2>
             </div>
-            <Link to="/services" className="text-sm text-primary hover:opacity-80 inline-flex items-center gap-1">
+            <Link
+              to="/services"
+              className="text-xs font-semibold text-primary hover:text-primary/80 inline-flex items-center gap-1.5 transition"
+            >
               See full menu & pricing <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {WHAT_WE_DO.map(({ icon: Icon, title, desc, href }) => (
               <Link
                 key={title}
                 to={href}
-                className="group rounded-2xl border border-border bg-background p-5 sm:p-6 hover:border-primary hover:shadow-soft transition"
+                className="group rounded-xl border border-border bg-card text-card-foreground p-6 hover:border-primary/60 hover:shadow-md transition text-center flex flex-col items-center justify-between"
               >
-                <Icon className="h-5 w-5 text-primary mb-4" strokeWidth={1.4} />
-                <div className="font-serif text-lg sm:text-xl mb-1.5">{title}</div>
-                <div className="text-xs text-muted-foreground leading-relaxed">{desc}</div>
-                <div className="mt-3 text-[10px] uppercase tracking-widest text-primary opacity-0 group-hover:opacity-100 transition">
-                  Explore →
+                <div className="w-full flex flex-col items-center">
+                  <div className="p-3 rounded-full bg-primary/10 text-primary mb-4 group-hover:scale-105 transition">
+                    <Icon className="h-5 w-5" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="font-serif text-xl font-medium text-card-foreground mb-2">{title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed font-light">{desc}</p>
                 </div>
               </Link>
             ))}
@@ -187,118 +202,171 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Why — hairline cards, no shadow */}
-      <section className="container mx-auto px-6 py-20 sm:py-28">
-        <div className="max-w-2xl mb-12 sm:mb-16">
-          <p className="text-[10px] sm:text-[11px] uppercase tracking-luxury text-primary mb-6">Our Philosophy</p>
-          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl text-balance">
-            Beauty, considered.
-          </h2>
-        </div>
-        <div className="grid md:grid-cols-3 gap-px bg-border border border-border">
-          {[
-            { icon: ShieldCheck, t: "Medical Expertise", d: "Led by Board-Certified Nurse Practitioner Kiem Vukadinovic and our medical team." },
-            { icon: Sparkles, t: "Advanced Technology", d: "Premium injectables and clinical-grade lasers for natural, lasting results." },
-            { icon: Calendar, t: "Effortless Booking", d: "Reserve in under a minute. No deposit charged — card is only used for no-shows." },
-          ].map(({ icon: Icon, t, d }) => (
-            <div key={t} className="bg-background p-10 sm:p-12">
-              <Icon className="h-5 w-5 text-primary mb-8" strokeWidth={1.2} />
-              <h3 className="font-serif text-2xl sm:text-3xl mb-4">{t}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed font-light">{d}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Medical Director — Dr. Fobi */}
-      <section className="border-t border-border bg-secondary/20">
-        <div className="container mx-auto px-6 py-20 sm:py-28">
-          <div className="grid md:grid-cols-2 gap-10 sm:gap-16 items-center">
-            <div className="order-2 md:order-1">
-              <p className="text-[10px] sm:text-[11px] uppercase tracking-luxury text-primary mb-4">Medical Director</p>
-              <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-6 text-balance">
-                Dr. Aloysius N. Fobi, <span className="italic">MD, F.A.C.E.P., A.B.E.M.</span>
-              </h2>
-              <div className="space-y-4 text-sm sm:text-base text-muted-foreground leading-relaxed font-light">
-                <p>
-                  Our Medical Director, Dr. Aloysius N. Fobi, MD, F.A.C.E.P., A.B.E.M., ensures the highest
-                  standard of care — bringing expertise and leadership in aesthetic medicine to every treatment.
-                </p>
-                <p>
-                  Dr. Fobi is a board-certified medical doctor with over two decades of experience in medicine.
-                  His extensive background in emergency medicine and aesthetic procedures allows him to provide
-                  advanced, safe, and effective treatments.
-                </p>
-                <p>
-                  In addition to his medical expertise, Dr. Fobi has specialized training in aesthetic medicine.
-                </p>
-              </div>
-            </div>
-            <div className="order-1 md:order-2">
-              <div className="relative aspect-[4/5] max-w-md mx-auto md:ml-auto md:mr-0 overflow-hidden rounded-2xl border border-border bg-secondary">
-                <img
-                  src={drFobiImg}
-                  alt="Dr. Aloysius N. Fobi, MD — Medical Director at Radiantilyk Aesthetic"
-                  className="absolute inset-0 w-full h-full object-cover object-top"
-                  loading="lazy"
-                />
-              </div>
-            </div>
+      {/* Our Philosophy Section */}
+      <section className="border-t border-border bg-secondary/30 dark:bg-card/30 py-20 px-6 sm:px-10 transition-colors duration-300">
+        <div className="max-w-6xl mx-auto">
+          <div className="max-w-xl mb-12">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold text-primary mb-2">
+              OUR PHILOSOPHY
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-foreground font-medium">
+              Beauty, considered.
+            </h2>
           </div>
-        </div>
-      </section>
 
-
-
-      {/* Reviews — social proof */}
-      <section className="border-t border-border bg-secondary/20">
-        <div className="container mx-auto px-6 py-20 sm:py-28">
-          <div className="text-center mb-12">
-            <p className="text-[10px] sm:text-[11px] uppercase tracking-luxury text-primary mb-3">From our clients</p>
-            <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-5">In their words.</h2>
-            <div className="flex flex-wrap items-center justify-center gap-3">
-              <GoogleReviewBadge placeId={placeIds.sj} fallbackUrl={placeIds.sjUrl ?? "https://g.page/r/CSd3Q5ZmyEyKEBM/review"} />
-            </div>
-
-          </div>
-          <div className="grid md:grid-cols-3 gap-4 sm:gap-6">
-            {reviewsToShow.map((r) => (
-              <figure key={r.id} className="rounded-2xl border border-border bg-background p-6 sm:p-8 flex flex-col">
-                <div className="flex gap-0.5 mb-4">
-                  {[0,1,2,3,4].map(j => <Star key={j} className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />)}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: ShieldCheck,
+                title: "Medical Expertise",
+                desc: "Led by board-certified professionals with years of medical experience."
+              },
+              {
+                icon: Sparkles,
+                title: "Advanced Technology",
+                desc: "Premium devices and clinically proven treatments for natural, lasting results."
+              },
+              {
+                icon: Calendar,
+                title: "Effortless Booking",
+                desc: "Modern, seamless experience so you can focus on what matters most—you."
+              }
+            ].map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="bg-card text-card-foreground border border-border rounded-xl p-8 flex flex-col items-start shadow-xs">
+                <div className="p-3 rounded-full bg-primary/10 text-primary mb-5">
+                  <Icon className="h-5 w-5" strokeWidth={1.5} />
                 </div>
-                <blockquote className="font-serif text-lg leading-relaxed text-pretty flex-1">
-                  "{r.quote}"
-                </blockquote>
-                <figcaption className="mt-5 pt-5 border-t border-border text-xs">
-                  <div className="font-medium">{r.author}</div>
-                  <div className="text-muted-foreground">{r.location}</div>
-                </figcaption>
-              </figure>
+                <h3 className="font-serif text-2xl text-card-foreground font-medium mb-3">{title}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-light">{desc}</p>
+              </div>
             ))}
           </div>
-          <div className="text-center mt-10 flex flex-wrap items-center justify-center gap-4">
+        </div>
+      </section>
+
+      {/* Medical Director Section */}
+      <section className="border-t border-border bg-background py-20 px-6 sm:px-10 transition-colors duration-300">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-14 items-center">
+          <div className="md:col-span-7">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold text-primary mb-2">
+              MEDICAL DIRECTOR
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-foreground font-medium mb-6 leading-tight">
+              Dr. Aloysius N. Fobi, <br className="hidden sm:inline" />
+              <span className="italic font-normal text-2xl sm:text-3xl lg:text-4xl text-primary">MD, F.A.C.E.P., A.B.E.M.</span>
+            </h2>
+
+            <div className="space-y-4 text-xs sm:text-sm text-muted-foreground leading-relaxed font-light">
+              <p>
+                Our Medical Director, Dr. Aloysius N. Fobi, MD, F.A.C.E.P., A.B.E.M., ensures the highest
+                standard of care—bringing expertise and leadership in aesthetic medicine to every treatment.
+              </p>
+              <p>
+                Dr. Fobi is a board-certified medical doctor with over two decades of experience in medicine.
+                His extensive background in emergency medicine and aesthetic procedures allows him to provide
+                advanced, safe, and effective treatments.
+              </p>
+              <p>
+                In addition to his medical expertise, Dr. Fobi has specialized training in aesthetic medicine.
+              </p>
+            </div>
+          </div>
+
+          <div className="md:col-span-5">
+            <div className="relative aspect-[4/5] max-w-sm mx-auto md:ml-auto rounded-2xl overflow-hidden shadow-lg border border-border bg-card">
+              <img
+                src={drFobiImg}
+                alt="Dr. Aloysius N. Fobi, MD — Medical Director"
+                className="absolute inset-0 w-full h-full object-cover object-top"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* From Our Clients Section */}
+      <section className="border-t border-border bg-secondary/30 dark:bg-card/30 py-20 px-6 sm:px-10 transition-colors duration-300">
+        <div className="max-w-6xl mx-auto text-center">
+          <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] font-semibold text-primary mb-2">
+            FROM OUR CLIENTS
+          </p>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-foreground font-medium mb-3">
+            In their words.
+          </h2>
+
+          {/* Rating Badge */}
+          <div className="flex items-center justify-center gap-2 mb-10">
+            <div className="flex text-amber-500">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-4 w-4 fill-amber-500 text-amber-500" />
+              ))}
+            </div>
+            <span className="text-xs font-semibold text-foreground">
+              <span className="font-bold">5.0</span> on Google
+            </span>
+          </div>
+
+          {/* Testimonial Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+            {reviewsToShow.map((r) => (
+              <div key={r.id} className="rounded-xl border border-border bg-card text-card-foreground p-6 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex text-amber-500 mb-3">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                    ))}
+                  </div>
+                  <p className="font-serif text-sm sm:text-base text-card-foreground leading-relaxed italic mb-6">
+                    "{r.quote}"
+                  </p>
+                </div>
+
+                <div className="border-t border-border pt-4 text-xs">
+                  <div className="font-semibold text-card-foreground">{r.author}</div>
+                  <div className="text-[10px] text-muted-foreground">{r.location}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-10">
             <a
-              href="https://g.page/r/CSd3Q5ZmyEyKEBM/review"
+              href={placeIds.sjUrl ?? "https://g.page/r/CSd3Q5ZmyEyKEBM/review"}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-primary hover:opacity-80 inline-flex items-center gap-1"
+              className="text-xs font-semibold text-primary hover:text-primary/80 inline-flex items-center gap-1.5 transition"
             >
               Read San Jose reviews <ArrowRight className="h-3.5 w-3.5" />
             </a>
           </div>
-
         </div>
       </section>
 
-      {/* CTA — quiet, no gradient */}
-      <section className="border-t border-border">
-        <div className="container mx-auto px-6 py-24 sm:py-36 text-center">
-          <p className="text-[10px] sm:text-[11px] uppercase tracking-luxury text-primary mb-6">Reserve</p>
-          <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl mb-10 text-balance">Begin the ritual.</h2>
-          <Button asChild size="lg" className="rounded-none text-xs uppercase tracking-[0.3em] px-10 h-12 font-normal">
-            <Link to={bookHref}>Book Your Appointment</Link>
-          </Button>
+      {/* Reserve CTA Banner */}
+      <section className="px-6 py-16 sm:py-24 bg-background transition-colors duration-300">
+        <div className="relative max-w-5xl mx-auto rounded-2xl bg-secondary/70 dark:bg-card border border-border py-16 px-8 sm:px-16 text-center overflow-hidden shadow-sm">
+          {/* Subtle Leaf Branch Vector Accent */}
+          <div className="pointer-events-none absolute right-4 bottom-0 opacity-20 text-primary">
+            <svg width="240" height="240" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17,8C15.34,8 14,9.34 14,11C14,12.66 15.34,14 17,14C18.66,14 20,12.66 20,11C20,9.34 18.66,8 17,8M7,8C5.34,8 4,9.34 4,11C4,12.66 5.34,14 7,14C8.66,14 10,12.66 10,11C10,9.34 8.66,8 7,8M12,2C6.48,2 2,6.48 2,12C2,17.52 6.48,22 12,22C17.52,22 22,17.52 22,12C22,6.48 17.52,2 12,2Z" />
+            </svg>
+          </div>
+
+          <div className="relative z-10">
+            <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] font-semibold text-primary mb-2">
+              RESERVE
+            </p>
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-foreground font-medium mb-8">
+              Begin the ritual.
+            </h2>
+            <Button
+              asChild
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 h-auto text-xs font-medium tracking-[0.2em] uppercase rounded-lg shadow-md transition active:scale-[0.98]"
+            >
+              <Link to={bookHref}>BOOK YOUR APPOINTMENT</Link>
+            </Button>
+          </div>
         </div>
       </section>
 

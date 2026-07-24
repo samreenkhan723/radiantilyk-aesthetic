@@ -112,7 +112,7 @@ export default function StaffInventory() {
     <div className="p-4 sm:p-8 max-w-6xl mx-auto">
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-serif text-3xl mb-1">Inventory</h1>
+          <h1 className="font-serif text-xl sm:text-2xl font-medium mb-1">Inventory</h1>
           <p className="text-sm text-muted-foreground">Product lots, expiration tracking, and stock levels.</p>
         </div>
         <div className="flex items-center gap-2">

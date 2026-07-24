@@ -27,41 +27,43 @@ export const StepService = ({
 
   return (
     <div>
-      <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl mb-3">What would you like?</h1>
-      <p className="text-muted-foreground mb-3">
-        Add one or more services — you can book several in a single visit.
-      </p>
-      <p className="text-sm mb-6">
-        <a href="/quiz" className="text-primary hover:underline">Not sure what you need? Take the 60-second quiz →</a>
+      <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1 mb-1">
+        <h1 className="font-serif text-xl sm:text-2xl text-foreground font-medium">What would you like?</h1>
+        <a href="/quiz" className="text-xs text-primary font-medium hover:underline shrink-0">
+          Not sure? Take 60s quiz →
+        </a>
+      </div>
+
+      <p className="text-xs text-muted-foreground mb-3">
+        Add one or more services — book several in a single visit.
       </p>
 
-
-      <div className="flex flex-wrap gap-2 mb-8 text-[11px]">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5">
-          <Star className="h-3 w-3 fill-amber-500 text-warning" /> 5.0 on Google
+      <div className="flex flex-wrap gap-1.5 mb-4 text-[10px]">
+        <span className="inline-flex items-center gap-1 rounded-full bg-secondary/70 px-2 py-0.5">
+          <Star className="h-2.5 w-2.5 fill-amber-500 text-amber-500" /> 5.0 Google
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5">
-          <ShieldCheck className="h-3 w-3 text-primary" /> Licensed providers
+        <span className="inline-flex items-center gap-1 rounded-full bg-secondary/70 px-2 py-0.5">
+          <ShieldCheck className="h-2.5 w-2.5 text-primary" /> Licensed MD/NP
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5">
-          <CreditCard className="h-3 w-3 text-primary" /> No deposit charged
+        <span className="inline-flex items-center gap-1 rounded-full bg-secondary/70 px-2 py-0.5">
+          <CreditCard className="h-2.5 w-2.5 text-primary" /> No deposit
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5">
-          <CalIcon className="h-3 w-3 text-primary" /> Free 48h cancellation
+        <span className="inline-flex items-center gap-1 rounded-full bg-secondary/70 px-2 py-0.5">
+          <CalIcon className="h-2.5 w-2.5 text-primary" /> Free 48h cancel
         </span>
       </div>
 
       {selectedSvcs.length > 0 && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 mb-6">
-          <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">
-            Your visit · {selectedSvcs.length} service{selectedSvcs.length > 1 ? "s" : ""} · {totalMin} min{totalCents > 0 ? ` · $${(totalCents/100).toFixed(totalCents % 100 === 0 ? 0 : 2)}` : ""}
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 mb-5">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1.5">
+            Your visit · {selectedSvcs.length} service{selectedSvcs.length > 1 ? "s" : ""} · {totalMin} min{totalCents > 0 ? ` · $${(totalCents / 100).toFixed(totalCents % 100 === 0 ? 0 : 2)}` : ""}
           </div>
           <div className="flex flex-wrap gap-2">
             {selectedSvcs.map(s => (
               <button
                 key={s.id}
                 onClick={() => onToggle(s.id)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground text-xs px-3 py-1.5 hover:opacity-90"
+                className="inline-flex items-center gap-1.5 rounded-full bg-primary text-primary-foreground text-xs px-2.5 py-1 hover:opacity-90"
                 aria-label={`Remove ${s.name}`}
               >
                 {s.name}
@@ -72,67 +74,108 @@ export const StepService = ({
         </div>
       )}
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-stretch">
         {cats.map(c => {
           const isOpen = openCat === c.id;
           const catServices = services.filter(s => s.category_id === c.id && offeredServiceIds.has(s.id));
           const selCount = catServices.filter(s => selected.includes(s.id)).length;
           return (
-            <div key={c.id} className={isOpen ? "sm:col-span-2" : undefined}>
-              <button
-                onClick={() => setOpenCat(isOpen ? null : c.id)}
-                className={`w-full text-left rounded-2xl border p-6 transition ${isOpen ? "border-primary bg-primary/5" : "border-border bg-card hover:border-primary/50"}`}
+            <div key={c.id} className={isOpen ? "col-span-full" : "h-full"}>
+              <div
+                className={`w-full h-full rounded-xl border p-4 transition-all duration-200 ${isOpen
+                  ? "border-primary/50 bg-card shadow-md"
+                  : "border-border bg-card hover:border-primary/40 hover:shadow-xs"
+                  }`}
               >
-                <div className="font-serif text-2xl">{c.name}</div>
-                {c.description && <div className="text-xs text-muted-foreground mt-1">{c.description}</div>}
-                <div className="text-xs text-primary mt-3">
-                  {catServices.length} services{selCount > 0 ? ` · ${selCount} selected` : ""}
-                </div>
-              </button>
-              {isOpen && (
-                <div className="mt-2 space-y-2 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0">
-                  {catServices.map(s => {
-                    const isSel = selected.includes(s.id);
-                    const price = typeof s.price_cents === "number"
-                      ? (s.price_cents === 0
+                {/* Category Header */}
+                <button
+                  type="button"
+                  onClick={() => setOpenCat(isOpen ? null : c.id)}
+                  className="w-full text-left flex items-start justify-between gap-3 group"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="font-serif text-base sm:text-lg font-medium leading-snug group-hover:text-primary transition-colors">
+                      {c.name}
+                    </div>
+                    {c.description && (
+                      <div className="text-[11px] sm:text-xs text-muted-foreground mt-1 leading-relaxed">
+                        {c.description}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] text-primary font-medium bg-primary/10 px-2.5 py-1 rounded-full group-hover:bg-primary/20 transition">
+                      {catServices.length} {catServices.length === 1 ? "service" : "services"}
+                      <span className="text-[9px] leading-none" aria-hidden>
+                        {isOpen ? "▲" : "▼"}
+                      </span>
+                    </span>
+                    {selCount > 0 && (
+                      <div className="text-[10px] text-muted-foreground mt-1 font-medium">
+                        {selCount} selected
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {/* Services List directly INSIDE the Tile when Expanded */}
+                {isOpen && (
+                  <div className="mt-4 pt-3 border-t border-border/60 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {catServices.map(s => {
+                      const isSel = selected.includes(s.id);
+                      const price = typeof s.price_cents === "number"
+                        ? (s.price_cents === 0
                           ? "Complimentary"
                           : `$${(s.price_cents / 100).toFixed(s.price_cents % 100 === 0 ? 0 : 2)}`)
-                      : null;
-                    return (
-                      <button key={s.id}
-                        onClick={() => onToggle(s.id)}
-                        className={`w-full text-left rounded-xl border p-4 transition ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-accent"}`}>
-                        <div className="grid grid-cols-[1.25rem_minmax(0,1fr)] gap-3">
-                          <span className={`mt-0.5 h-5 w-5 shrink-0 rounded-md border flex items-center justify-center ${isSel ? "bg-primary-foreground border-primary-foreground text-primary" : "border-muted-foreground/40"}`}>
-                            {isSel && <Check className="h-3.5 w-3.5" />}
+                        : null;
+                      return (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggle(s.id);
+                          }}
+                          className={`w-full text-left rounded-lg border p-3 transition flex items-start gap-3 ${isSel
+                            ? "border-primary bg-primary text-primary-foreground shadow-xs"
+                            : "border-border/80 bg-background hover:bg-accent/60"
+                            }`}
+                        >
+                          <span
+                            className={`mt-0.5 h-4.5 w-4.5 shrink-0 rounded border flex items-center justify-center transition-colors ${isSel
+                              ? "bg-primary-foreground border-primary-foreground text-primary"
+                              : "border-muted-foreground/40 bg-background"
+                              }`}
+                          >
+                            {isSel && <Check className="h-3 w-3" />}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <div className="space-y-2">
-                              <div className="font-medium leading-snug whitespace-normal break-words text-pretty">{s.name}</div>
+                            <div className="flex items-baseline justify-between gap-2">
+                              <div className="font-medium text-xs sm:text-sm leading-snug">{s.name}</div>
                               {price && (
-                                <div className="text-sm font-semibold leading-none">{price}</div>
+                                <div className="text-xs font-semibold shrink-0">{price}</div>
                               )}
                             </div>
                             {s.price_note && (
-                              <div className={`text-xs mt-2 leading-relaxed whitespace-normal break-words ${isSel ? "opacity-90" : "text-muted-foreground"}`}>
+                              <div className={`text-[11px] mt-1 leading-tight ${isSel ? "opacity-90" : "text-muted-foreground"}`}>
                                 {s.price_note}
                               </div>
                             )}
                             {s.description && (
-                              <div className={`text-xs mt-1.5 line-clamp-2 leading-relaxed ${isSel ? "opacity-90" : "text-muted-foreground"}`}>
+                              <div className={`text-[11px] mt-1 line-clamp-2 leading-relaxed ${isSel ? "opacity-90" : "text-muted-foreground"}`}>
                                 {s.description}
                               </div>
                             )}
-                            <div className={`text-xs mt-2 inline-flex items-center gap-1 ${isSel ? "opacity-80" : "text-muted-foreground"}`}>
+                            <div className={`text-[11px] mt-2 inline-flex items-center gap-1 ${isSel ? "opacity-85" : "text-muted-foreground"}`}>
                               <Clock className="h-3 w-3" />{s.duration_minutes} min
                             </div>
                           </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
@@ -174,7 +217,6 @@ export const StepService = ({
                     Our studio is in San Jose at 2100 Curtner Ave, Ste 1B.
                   </AccordionContent>
                 </AccordionItem>
-
               </Accordion>
             </AccordionContent>
           </AccordionItem>
@@ -185,8 +227,8 @@ export const StepService = ({
         <>
           <div className="h-24" aria-hidden />
           <div className="fixed bottom-0 inset-x-0 bg-background/95 backdrop-blur border-t border-border p-4 z-30">
-            <div className="container mx-auto max-w-3xl flex items-center justify-between gap-3">
-              <div className="text-xs text-muted-foreground">
+            <div className="container mx-auto max-w-6xl flex items-center justify-between gap-3">
+              <div className="text-xs text-muted-foreground font-medium">
                 {selected.length} service{selected.length > 1 ? "s" : ""} · {totalMin} min
               </div>
               <Button onClick={onContinue} size="lg" className="rounded-full px-8">

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SiteHeader, SiteFooter } from "@/components/SiteChrome";
-import { Loader2, ShieldAlert, ShieldCheck, Check } from "lucide-react";
+import { Loader2, ShieldAlert, ShieldCheck, Check, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 import { setDemoAuthSession, clearDemoAuthSession, AppRole } from "@/hooks/useAuth";
@@ -51,6 +51,7 @@ export default function StaffLogin() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // MFA state
@@ -209,7 +210,7 @@ export default function StaffLogin() {
         ? ["privacy_officer", "staff"]
         : isMD
         ? ["medical_director", "staff"]
-        : ["staff", "nurse_practitioner"];
+        : ["staff"];
       setPendingDemoLogin({ cleanEmail, roles, isAd });
       setLoading(false);
       setStep("mfa-verify");
@@ -338,177 +339,194 @@ export default function StaffLogin() {
   const activeRole = roleParam === "admin" ? "admin" : roleParam === "user" ? "user" : "staff";
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col justify-between">
       <SiteHeader />
-      <main className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="w-full max-w-md md:max-w-lg">
+      <main className="flex-1 flex items-center justify-center px-4 py-4 md:py-6">
+        <div className="w-full max-w-md bg-card/70 backdrop-blur-sm border border-border/80 rounded-2xl p-4 sm:p-5 shadow-sm">
           {/* Portal Switcher Tabs */}
-          <div className="flex items-center justify-between p-1 mb-6 rounded-xl bg-muted/60 border border-border text-xs font-medium">
+          <div className="flex items-center justify-between p-1 mb-3.5 rounded-xl bg-muted/60 border border-border text-xs font-medium">
             <Link
               to="/staff/login?role=admin"
-              className={`flex-1 py-2 rounded-lg transition text-center ${activeRole === "admin" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex-1 py-1.5 rounded-lg transition text-center ${activeRole === "admin" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"}`}
             >
               Admin Login
             </Link>
             <Link
               to="/staff/login?role=staff"
-              className={`flex-1 py-2 rounded-lg transition text-center ${activeRole === "staff" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex-1 py-1.5 rounded-lg transition text-center ${activeRole === "staff" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"}`}
             >
               Staff Login
             </Link>
             <Link
               to="/staff/login?role=user"
-              className={`flex-1 py-2 rounded-lg transition text-center ${activeRole === "user" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex-1 py-1.5 rounded-lg transition text-center ${activeRole === "user" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"}`}
             >
               User Login
             </Link>
           </div>
 
-          <div className="text-center mb-8">
-            <div className="font-serif text-3xl md:text-4xl">Radiantilyk Aesthetic</div>
-            <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground mt-1">
+          <div className="text-center mb-3">
+            <h1 className="font-serif text-2xl font-normal tracking-tight">Radiantilyk Aesthetic</h1>
+            <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground mt-0.5">
               {activeRole === "admin" ? "Admin & Management Portal" : activeRole === "user" ? "Patient & Client Portal" : "Staff & Provider Portal"}
-            </div>
+            </p>
           </div>
 
           <Stepper step={step} />
 
           {mode === "loading" && (
-            <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin" /></div>
+            <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-primary" /></div>
           )}
 
           {mode === "ready" && step === "credentials" && (
             <>
               {reason === "idle" && (
-                <div className="mb-6 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning-soft px-3 py-2.5 text-xs md:text-sm text-warning-soft-foreground">
+                <div className="mb-3 flex items-start gap-2 rounded-xl border border-warning/30 bg-warning-soft px-3 py-2 text-xs text-warning-soft-foreground">
                   <ShieldAlert className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                  <span>You were signed out after 15 minutes of inactivity to protect patient privacy. Please sign in again.</span>
+                  <span>Signed out after 15m of inactivity for privacy. Please sign in again.</span>
                 </div>
               )}
               {/* Demo Credentials Quick Fill Box */}
-              <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
-                <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
-                <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
+              <div className="mb-3.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs">
+                <div className="font-semibold text-foreground mb-0.5 flex items-center justify-between">
+                  <span>⚡ Quick Demo Credentials</span>
+                  <span className="text-[10px] text-muted-foreground font-normal">Pass: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code></span>
+                </div>
+                <div className="text-[11px] text-muted-foreground mb-2">Click to auto-fill login details:</div>
 
                 {activeRole === "admin" && (
-                  <div className="grid grid-cols-1 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials("admin@gmail.com")}
-                      className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
-                    >
-                      <div>
-                        👑 <strong>Admin</strong>
-                        <span className="text-[10px] text-muted-foreground block font-mono">admin@gmail.com</span>
-                      </div>
-                      <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded">Full Admin Access</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fillDemoCredentials("admin@gmail.com")}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      👑 <strong>Admin</strong>
+                      <span className="text-[10px] text-muted-foreground ml-1.5 font-mono">admin@gmail.com</span>
+                    </div>
+                    <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded">Full Access</span>
+                  </button>
                 )}
 
                 {activeRole === "staff" && (
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("md@gmail.com")}
                       className="px-2 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition text-left text-xs font-medium cursor-pointer text-purple-900 dark:text-purple-300"
                     >
-                      🩺 <strong>Medical Director</strong><br /><span className="text-[10px] opacity-80 truncate block">md@gmail.com</span>
+                      🩺 <strong>MD</strong><br /><span className="text-[9px] opacity-80 truncate block">md@gmail.com</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("officer@gmail.com")}
                       className="px-2 py-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 transition text-left text-xs font-medium cursor-pointer text-emerald-800 dark:text-emerald-300"
                     >
-                      🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
+                      🛡️ <strong>Security</strong><br /><span className="text-[9px] opacity-80 truncate block">officer@gmail.com</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("staff@gmail.com")}
                       className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
                     >
-                      💉 <strong>Staff / Nurse</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
+                      💉 <strong>Staff</strong><br /><span className="text-[9px] text-muted-foreground truncate block">staff@gmail.com</span>
                     </button>
                   </div>
                 )}
 
                 {activeRole === "user" && (
-                  <div className="grid grid-cols-1 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials("user@gmail.com")}
-                      className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
-                    >
-                      <div>
-                        👤 <strong>Patient / User</strong>
-                        <span className="text-[10px] text-muted-foreground block font-mono">user@gmail.com</span>
-                      </div>
-                      <span className="text-[10px] bg-secondary text-secondary-foreground font-semibold px-2 py-0.5 rounded">Client Portal</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fillDemoCredentials("user@gmail.com")}
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
+                  >
+                    <div>
+                      👤 <strong>Patient / User</strong>
+                      <span className="text-[10px] text-muted-foreground ml-1.5 font-mono">user@gmail.com</span>
+                    </div>
+                    <span className="text-[10px] bg-secondary text-secondary-foreground font-semibold px-2 py-0.5 rounded">Client Portal</span>
+                  </button>
                 )}
               </div>
 
-              <form onSubmit={submitCredentials} className="space-y-5">
+              <form onSubmit={submitCredentials} className="space-y-3">
                 <div>
-                  <Label htmlFor="email" className="md:text-base">Email</Label>
-                  <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1.5 h-12 md:h-14 md:text-base" />
+                  <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+                  <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 h-9 text-sm" />
                 </div>
                 <div>
-                  <Label htmlFor="password" className="md:text-base">Password</Label>
-                  <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1.5 h-12 md:h-14 md:text-base" />
+                  <Label htmlFor="password" className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+                  <div className="relative mt-1">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="h-9 text-sm pr-9"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition p-0.5"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
                 </div>
-                <Button type="submit" disabled={loading} className="w-full rounded-full h-12 md:h-14 text-base md:text-lg">
-                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Continue"}
+                <Button type="submit" disabled={loading} className="w-full rounded-full h-10 text-sm font-medium mt-1">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Continue"}
                 </Button>
-                <p className="text-sm md:text-base text-center">
-                  <Link to="/staff/forgot-password" className="text-primary hover:underline inline-block py-2 px-3 min-h-11">
+                <div className="pt-1 text-center text-xs space-y-1">
+                  <Link to="/staff/forgot-password" className="text-primary hover:underline font-medium inline-block">
                     Forgot your password?
                   </Link>
-                </p>
-                <p className="text-xs md:text-sm text-muted-foreground text-center">
-                  No account? Check your email for an activation link from your administrator.
-                </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    No account? Check your email for an activation link.
+                  </p>
+                </div>
               </form>
             </>
           )}
 
           {mode === "ready" && errMsg && (step === "mfa-enroll" || step === "mfa-verify") && (
-            <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive-soft px-3 py-2.5 text-xs text-destructive-soft-foreground">
+            <div className="mb-3 rounded-xl border border-destructive/30 bg-destructive-soft px-3 py-2 text-xs text-destructive-soft-foreground">
               {errMsg}
             </div>
           )}
 
           {mode === "ready" && step === "mfa-enroll" && (
-            <div className="space-y-5">
-              <div className="rounded-xl border border-warning/30 bg-warning-soft px-3 py-2.5 text-xs text-warning-soft-foreground flex gap-2">
+            <div className="space-y-3">
+              <div className="rounded-xl border border-warning/30 bg-warning-soft px-3 py-2 text-xs text-warning-soft-foreground flex gap-2">
                 <ShieldCheck className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <span>To protect patient health information, all staff must set up two-factor authentication.</span>
+                <span>To protect health data, two-factor auth is required.</span>
               </div>
-              <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal pl-4">
-                <li>Install Google Authenticator, 1Password, Authy, or any TOTP app.</li>
-                <li>Scan the QR code below (or enter the secret manually).</li>
-                <li>Enter the 6-digit code your app displays.</li>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
+                <li>Install an authenticator app (Google Authenticator, Authy).</li>
+                <li>Scan the QR code or enter secret.</li>
+                <li>Enter the 6-digit verification code.</li>
               </ol>
               {qrSvg && (
-                <div className="flex justify-center bg-white rounded-xl p-4 border">
-                  <img src={qrSvg} alt="Scan with your authenticator app" className="h-44 w-44" />
+                <div className="flex justify-center bg-white rounded-xl p-3 border">
+                  <img src={qrSvg} alt="Scan with your authenticator app" className="h-32 w-32" />
                 </div>
               )}
               {secret && (
                 <div className="text-center">
-                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Manual entry key</div>
-                  <code className="text-xs font-mono break-all select-all">{secret}</code>
+                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground">Manual entry key</div>
+                  <code className="text-xs font-mono select-all">{secret}</code>
                 </div>
               )}
-              <form onSubmit={verifyEnroll} className="space-y-4">
+              <form onSubmit={verifyEnroll} className="space-y-3">
                 <div>
-                  <Label htmlFor="code">6-digit code</Label>
+                  <Label htmlFor="code" className="text-xs uppercase tracking-wider text-muted-foreground">6-digit code</Label>
                   <Input id="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required
                     value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    className="mt-1.5 text-center tracking-[0.5em] font-mono text-lg" />
+                    className="mt-1 h-9 text-center tracking-[0.4em] font-mono text-base" />
                 </div>
-                <Button type="submit" disabled={busy || code.length !== 6} className="w-full rounded-full">
+                <Button type="submit" disabled={busy || code.length !== 6} className="w-full rounded-full h-10 text-sm font-medium">
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Activate two-factor"}
                 </Button>
               </form>
@@ -516,31 +534,31 @@ export default function StaffLogin() {
           )}
 
           {mode === "ready" && step === "mfa-verify" && (
-            <form onSubmit={verifyLogin} className="space-y-5">
-              <p className="text-sm text-muted-foreground text-center">
+            <form onSubmit={verifyLogin} className="space-y-3">
+              <p className="text-xs text-muted-foreground text-center">
                 Enter the 6-digit code from your authenticator app to continue.
               </p>
               <div>
-                <Label htmlFor="code">Authentication code</Label>
+                <Label htmlFor="code" className="text-xs uppercase tracking-wider text-muted-foreground">Authentication code</Label>
                 <Input id="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus
                   value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  className="mt-1.5 text-center tracking-[0.5em] font-mono text-lg" />
+                  className="mt-1 h-9 text-center tracking-[0.4em] font-mono text-base" />
               </div>
-              <Button type="submit" disabled={busy || code.length !== 6} className="w-full rounded-full">
+              <Button type="submit" disabled={busy || code.length !== 6} className="w-full rounded-full h-10 text-sm font-medium">
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify & continue"}
               </Button>
             </form>
           )}
 
           {mode === "ready" && step === "redirecting" && (
-            <div className="py-12 flex flex-col items-center gap-3 text-sm text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin" />
+            <div className="py-8 flex flex-col items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
               Taking you to your dashboard…
             </div>
           )}
 
           {(step === "mfa-enroll" || step === "mfa-verify") && (
-            <div className="mt-6 text-center">
+            <div className="mt-4 text-center">
               <Button variant="link" size="sm" onClick={signOut} className="text-xs text-muted-foreground">
                 Sign out and start over
               </Button>
@@ -561,17 +579,17 @@ function Stepper({ step }: { step: Step }) {
   ];
   const activeIdx = step === "credentials" ? 0 : step === "redirecting" ? 2 : 1;
   return (
-    <div className="mb-8 flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.25em] text-muted-foreground" aria-label="Sign-in progress">
+    <div className="mb-3.5 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground" aria-label="Sign-in progress">
       {steps.map((s, i) => {
         const isDone = i < activeIdx;
         const isActive = i === activeIdx;
         return (
-          <div key={s.id} className="flex items-center gap-2">
-            <div className={`h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-medium border ${isDone ? "bg-primary text-primary-foreground border-primary" : isActive ? "border-foreground text-foreground" : "border-border text-muted-foreground"}`}>
-              {isDone ? <Check className="h-3 w-3" /> : i + 1}
+          <div key={s.id} className="flex items-center gap-1.5">
+            <div className={`h-4 w-4 rounded-full flex items-center justify-center text-[9px] font-medium border ${isDone ? "bg-primary text-primary-foreground border-primary" : isActive ? "border-foreground text-foreground" : "border-border text-muted-foreground"}`}>
+              {isDone ? <Check className="h-2.5 w-2.5" /> : i + 1}
             </div>
-            <span className={isActive ? "text-foreground" : ""}>{s.label}</span>
-            {i < steps.length - 1 && <span className="w-6 h-px bg-border mx-1" />}
+            <span className={isActive ? "text-foreground font-semibold" : ""}>{s.label}</span>
+            {i < steps.length - 1 && <span className="w-4 h-px bg-border mx-0.5" />}
           </div>
         );
       })}

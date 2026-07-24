@@ -5,7 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowRight, Clock, Loader2, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
@@ -86,8 +86,8 @@ export function SlotPicker({
   };
 
   const layout = compact
-    ? "grid gap-4"
-    : "grid md:grid-cols-2 gap-6 md:gap-8";
+    ? "flex flex-col gap-4"
+    : "flex flex-col md:flex-row items-start gap-5 sm:gap-6";
 
   return (
     <div>
@@ -95,20 +95,19 @@ export function SlotPicker({
         <button
           type="button"
           onClick={pickNext}
-          className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-3 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 transition px-4 py-2.5 mb-6 text-sm"
+          className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 hover:bg-primary/10 transition px-3.5 py-1.5 mb-4 text-xs font-medium"
         >
-          <span className="inline-flex items-center gap-2 text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Next available
+          <Sparkles className="h-3.5 w-3.5 text-primary shrink-0" />
+          <span className="text-muted-foreground">Next available:</span>
+          <span className="text-primary font-semibold">
+            {format(new Date(nextAvail.date + "T12:00:00"), "EEE, MMM d")} @ {format(new Date(nextAvail.slot), "h:mm a")}
           </span>
-          <span className="font-medium">
-            {format(new Date(nextAvail.date + "T12:00:00"), "EEE, MMM d")} · {format(new Date(nextAvail.slot), "h:mm a")}
-          </span>
-          <ArrowRight className="h-3.5 w-3.5 opacity-60" />
+          <ArrowRight className="h-3 w-3 text-primary/70 ml-0.5" />
         </button>
       )}
 
       <div className={layout}>
-        <div className={`rounded-2xl border border-border bg-card ${compact ? "p-1 sm:p-2" : "p-2 sm:p-3"}`}>
+        <div className={`rounded-2xl border border-border bg-card w-full md:w-auto shrink-0 shadow-xs ${compact ? "p-1 sm:p-2" : "p-2 sm:p-2.5"}`}>
           <Calendar
             mode="single"
             selected={date}
@@ -124,38 +123,67 @@ export function SlotPicker({
           />
           {!loadingRange && availableSet.size === 0 && (
             <p className="text-xs text-muted-foreground text-center px-3 pb-2">
-              No availability in the next 6 months.
+              No availability in next 6 months.
             </p>
           )}
         </div>
 
-        <div>
-          {!date && <p className="text-muted-foreground text-sm">Select a date to see available times.</p>}
-          {date && loadingSlots && (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" /> Loading times…
+        <div className="flex-1 w-full min-w-0">
+          {!date && (
+            <div className="rounded-2xl border border-dashed border-border/70 p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-muted/15 min-h-[220px] h-full">
+              <Clock className="h-5 w-5 mb-2 text-muted-foreground/60 stroke-[1.5]" />
+              <p className="text-xs font-semibold text-foreground/80">Select a date</p>
+              <p className="text-[11px] text-muted-foreground mt-1 max-w-[200px]">
+                Choose a date on the calendar to view available appointment slots.
+              </p>
             </div>
           )}
-          {date && !loadingSlots && slots.length === 0 && (
-            <p className="text-muted-foreground text-sm">No availability that day. Please try another date.</p>
+
+          {date && loadingSlots && (
+            <div className="rounded-2xl border border-border/50 p-6 flex items-center justify-center gap-2 text-xs text-muted-foreground min-h-[200px]">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" /> Fetching available times…
+            </div>
           )}
+
+          {date && !loadingSlots && slots.length === 0 && (
+            <div className="rounded-2xl border border-border/50 p-6 flex flex-col items-center justify-center text-center text-muted-foreground bg-muted/10 min-h-[200px]">
+              <p className="text-xs font-medium text-foreground">No available slots</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Please select another date on the calendar.</p>
+            </div>
+          )}
+
           {date && !loadingSlots && slots.length > 0 && (
-            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Available times">
-              {slots.map((s) => {
-                const isSel = value === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => onChange(s)}
-                    role="radio"
-                    aria-checked={isSel}
-                    className={`rounded-full border min-h-[52px] min-w-[44px] px-2 py-3 text-sm font-medium transition active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${isSel ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary/50"}`}
-                  >
-                    {format(new Date(s), "h:mm a")}
-                  </button>
-                );
-              })}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-medium text-foreground/90">
+                  Available times · <span className="text-primary font-semibold">{format(date, "EEE, MMM d")}</span>
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {slots.length} {slots.length === 1 ? "slot" : "slots"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" role="radiogroup" aria-label="Available times">
+                {slots.map((s) => {
+                  const isSel = value === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => onChange(s)}
+                      role="radio"
+                      aria-checked={isSel}
+                      className={`rounded-xl border h-10 px-2 text-xs font-medium transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
+                        isSel
+                          ? "border-primary bg-primary text-primary-foreground font-semibold shadow-xs"
+                          : "border-border/80 bg-background hover:border-primary/50 hover:bg-accent/40 text-foreground"
+                      }`}
+                    >
+                      {format(new Date(s), "h:mm a")}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

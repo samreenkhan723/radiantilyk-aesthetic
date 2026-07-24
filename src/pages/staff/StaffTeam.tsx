@@ -453,26 +453,86 @@ export default function StaffTeam() {
     load();
   };
 
+  const resolveMemberRole = (m: Member): Role => {
+    const titleLower = (m.title || "").toLowerCase();
+    const inferredRoleFromTitle: Role | null =
+      titleLower.includes("medical director") || titleLower.includes("supervising physician")
+        ? "medical_director"
+        : titleLower.includes("nurse practitioner") || titleLower.includes("np")
+        ? "nurse_practitioner"
+        : titleLower.includes("physician") || titleLower.includes("practitioner") || titleLower.includes("provider") || titleLower.includes("injector")
+        ? "provider"
+        : titleLower.includes("security") || titleLower.includes("privacy")
+        ? "privacy_officer"
+        : titleLower.includes("receptionist")
+        ? "receptionist"
+        : titleLower.includes("scheduler")
+        ? "scheduler"
+        : null;
+
+    if (inferredRoleFromTitle) return inferredRoleFromTitle;
+
+    const memberRoles = m.user_id ? (roles[m.user_id] ?? []) : [];
+    const inv = invites[m.id];
+    const approvedAccounts: any[] = JSON.parse(localStorage.getItem("rka_approved_staff_accounts") || "[]");
+    const matchedApproved = approvedAccounts.find(
+      (a: any) => a.email && m.email && a.email.toLowerCase() === m.email.toLowerCase()
+    );
+
+    return (
+      m.pending_role ||
+      (m as any).role ||
+      (matchedApproved?.role as Role) ||
+      (memberRoles.includes("admin")
+        ? "admin"
+        : memberRoles.includes("medical_director")
+        ? "medical_director"
+        : memberRoles.includes("provider")
+        ? "provider"
+        : memberRoles.includes("nurse_practitioner")
+        ? "nurse_practitioner"
+        : memberRoles.includes("privacy_officer")
+        ? "privacy_officer"
+        : memberRoles.includes("scheduler")
+        ? "scheduler"
+        : memberRoles.includes("receptionist")
+        ? "receptionist"
+        : memberRoles.includes("staff")
+        ? "staff"
+        : (inv?.role ?? "staff"))
+    );
+  };
+
+  const getRoleBadge = (role: Role) => {
+    switch (role) {
+      case "medical_director":
+        return <Badge variant="outline" className="bg-purple-500/10 text-purple-600 border-purple-500/20 text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Medical Director</Badge>;
+      case "nurse_practitioner":
+        return <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Nurse Practitioner</Badge>;
+      case "provider":
+        return <Badge variant="outline" className="bg-indigo-500/10 text-indigo-600 border-indigo-500/20 text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Provider</Badge>;
+      case "admin":
+        return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Admin</Badge>;
+      case "privacy_officer":
+        return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Security Officer</Badge>;
+      case "receptionist":
+        return <Badge variant="outline" className="bg-secondary text-foreground border-border text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Receptionist</Badge>;
+      case "scheduler":
+        return <Badge variant="outline" className="bg-secondary text-foreground border-border text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Scheduler</Badge>;
+      default:
+        return <Badge variant="outline" className="bg-secondary text-foreground border-border text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">Staff</Badge>;
+    }
+  };
+
   if (!isAdmin) return <div className="p-8 text-sm text-muted-foreground">Admins only.</div>;
 
   const filteredMembers = members.filter((m) => {
     if (roleFilter === "all") return true;
-    const memberRoles = m.user_id ? (roles[m.user_id] ?? []) : [];
-    const inv = invites[m.id];
-    const primaryRole: Role = m.pending_role || (
-      memberRoles.includes("admin") ? "admin" :
-      memberRoles.includes("medical_director") ? "medical_director" :
-      memberRoles.includes("provider") ? "provider" :
-      memberRoles.includes("nurse_practitioner") ? "nurse_practitioner" :
-      memberRoles.includes("scheduler") ? "scheduler" :
-      memberRoles.includes("receptionist") ? "receptionist" :
-      memberRoles.includes("staff") ? "staff" :
-      (inv?.role ?? "staff")
-    );
+    const primaryRole = resolveMemberRole(m);
 
     if (roleFilter === "admin") return primaryRole === "admin";
     if (roleFilter === "md") return primaryRole === "medical_director";
-    if (roleFilter === "provider") return primaryRole === "provider";
+    if (roleFilter === "provider") return primaryRole === "provider" || primaryRole === "nurse_practitioner" || primaryRole === "medical_director";
     if (roleFilter === "np") return primaryRole === "nurse_practitioner";
     if (roleFilter === "staff") return primaryRole === "staff" || primaryRole === "receptionist" || primaryRole === "scheduler";
     return true;
@@ -680,23 +740,14 @@ export default function StaffTeam() {
       ) : (
         <div className="space-y-2">
           {filteredMembers.map((m) => {
-            const memberRoles = m.user_id ? (roles[m.user_id] ?? []) : [];
-            const inv = invites[m.id];
-            const primaryRole: Role = m.pending_role || (
-              memberRoles.includes("admin") ? "admin" :
-              memberRoles.includes("medical_director") ? "medical_director" :
-              memberRoles.includes("provider") ? "provider" :
-              memberRoles.includes("nurse_practitioner") ? "nurse_practitioner" :
-              memberRoles.includes("scheduler") ? "scheduler" :
-              memberRoles.includes("receptionist") ? "receptionist" :
-              memberRoles.includes("staff") ? "staff" :
-              (inv?.role ?? "staff")
-            );
+            const primaryRole = resolveMemberRole(m);
 
             return (
               <div key={m.id} className="rounded-2xl border border-border bg-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="h-10 w-10 rounded-full shrink-0" style={{ background: m.color }} />
+                  <div className="h-10 w-10 rounded-full shrink-0 flex items-center justify-center font-bold text-white shadow-xs" style={{ background: m.color }}>
+                    {m.full_name.slice(0, 2).toUpperCase()}
+                  </div>
                   <div className="min-w-0">
                     <div className="font-medium truncate">{m.full_name}</div>
                     <div className="text-xs text-muted-foreground truncate">{m.title} · {m.email || "no email"}</div>
@@ -714,9 +765,7 @@ export default function StaffTeam() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="bg-secondary text-foreground text-xs font-semibold px-2.5 py-1 uppercase tracking-wider">
-                    {primaryRole.replace("_", " ")}
-                  </Badge>
+                  {getRoleBadge(primaryRole)}
 
                   {!m.is_owner && (
                     <div className="flex items-center gap-1">

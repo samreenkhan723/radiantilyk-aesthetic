@@ -203,7 +203,7 @@ const Book = () => {
             const d = JSON.parse(raw);
             // Only restore selections if recent (< 7 days) and not already completed
             if (d && d.when && Date.now() - d.when < 7 * 24 * 60 * 60 * 1000) {
-              if (Array.isArray(d.serviceIds) && d.serviceIds.length) setServiceIds(d.serviceIds);
+              if (Array.isArray(d.serviceIds)) setServiceIds(d.serviceIds);
               if (d.locationId) setLocationId(d.locationId);
               if (d.staffId) setStaffId(d.staffId);
               if (d.date) setDate(new Date(d.date));
@@ -224,19 +224,22 @@ const Book = () => {
   // Autosave draft whenever the funnel state meaningfully changes
   useEffect(() => {
     if (loading) return;
-    if (serviceIds.length === 0 && !client.email) return;
     try {
-      localStorage.setItem("rka_book_draft", JSON.stringify({
-        when: Date.now(),
-        step,
-        serviceIds, locationId, staffId,
-        date: date ? date.toISOString() : null,
-        slot,
-        client: {
-          firstName: client.firstName, lastName: client.lastName,
-          email: client.email, phone: client.phone, dob: client.dob,
-        },
-      }));
+      if (serviceIds.length === 0 && !locationId && !staffId && !date && !slot) {
+        localStorage.removeItem("rka_book_draft");
+      } else {
+        localStorage.setItem("rka_book_draft", JSON.stringify({
+          when: Date.now(),
+          step,
+          serviceIds, locationId, staffId,
+          date: date ? date.toISOString() : null,
+          slot,
+          client: {
+            firstName: client.firstName, lastName: client.lastName,
+            email: client.email, phone: client.phone, dob: client.dob,
+          },
+        }));
+      }
     } catch {}
   }, [loading, step, serviceIds, locationId, staffId, date, slot, client.firstName, client.lastName, client.email, client.phone, client.dob]);
 
@@ -505,6 +508,39 @@ const Book = () => {
 
   };
 
+  const handleJumpToStep = (target: number) => {
+    const current = step === 5 && payStep === "pay" ? 6 : step;
+    if (target === current) return;
+
+    if (target < current) {
+      if (target === 6) { setStep(5); setPayStep("pay"); }
+      else if (target === 5) { setStep(5); setPayStep("consents"); }
+      else { setStep(target); }
+      return;
+    }
+
+    // Jump forward validation
+    if (target >= 2 && serviceIds.length === 0) {
+      toast.error("Please select a service first.");
+      setStep(1);
+      return;
+    }
+    if (target >= 3 && locations.length > 1 && !locationId) {
+      toast.error("Please choose a location and provider.");
+      setStep(2);
+      return;
+    }
+    if (target >= 4 && (!slot || !date)) {
+      toast.error("Please pick a date and time slot.");
+      setStep(3);
+      return;
+    }
+
+    if (target === 6) { setStep(5); setPayStep("pay"); }
+    else if (target === 5) { setStep(5); setPayStep("consents"); }
+    else { setStep(target); }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -517,15 +553,18 @@ const Book = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <SiteHeader />
 
-      <main className="flex-1 container mx-auto px-4 pt-4 pb-8 md:py-16 max-w-3xl">
-        <NurseDiscountBanner className="mb-4" />
+      <main className="flex-1 container mx-auto px-4 sm:px-6 md:px-8 pt-2 pb-8 max-w-6xl">
+        {/* Floating Announcement Banner */}
+        <div className="flex justify-center mb-2">
+          <NurseDiscountBanner />
+        </div>
 
         {draftBanner && draftRestored && (
-          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/5 px-4 py-3 flex items-start gap-3 text-sm">
-            <span className="text-lg leading-none mt-0.5" aria-hidden>↻</span>
+          <div className="mb-3 rounded-xl border border-primary/30 bg-primary/5 px-3.5 py-2 flex items-start gap-3 text-xs">
+            <span className="text-base leading-none mt-0.5" aria-hidden>↻</span>
             <div className="flex-1 min-w-0">
               <div className="font-medium">Welcome back — we saved your spot.</div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[11px] text-muted-foreground mt-0.5">
                 Picked up at step {draftBanner.step} of 6. Your selections are filled in.
               </div>
             </div>
@@ -536,7 +575,7 @@ const Book = () => {
                 setDate(undefined); setSlot(null); setStep(1);
                 setDraftBanner(null); setDraftRestored(false);
               }}
-              className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline shrink-0"
+              className="text-[11px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline shrink-0"
             >
               Start over
             </button>
@@ -553,9 +592,9 @@ const Book = () => {
           {step === 5 && payStep === "pay" && "Step 6 of 6: add a card on file to confirm."}
         </div>
         {/* Sticky progress: keeps "where am I in the funnel?" visible while clients scroll long steps */}
-        <div className="sticky top-0 z-30 -mx-4 px-4 pt-3 pb-3 mb-6 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b border-border/40">
-          <div className="flex items-center justify-between mb-2 gap-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+        <div className="sticky top-0 z-30 -mx-4 px-4 pt-1.5 pb-2 mb-3 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border/40">
+          <div className="flex items-center justify-between mb-1.5 gap-2">
+            <p className="text-[11px] uppercase tracking-[0.25em] text-muted-foreground font-medium">
               {(() => {
                 const displayStep = step === 5 && payStep === "pay" ? 6 : step;
                 return `Step ${displayStep} of 6`;
@@ -572,16 +611,16 @@ const Book = () => {
             {step > 1 && (
               <button
                 onClick={() => { if (step === 5 && payStep === "pay") setPayStep("consents"); else goBack(); }}
-                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground min-h-[44px] min-w-[44px] -mr-2 px-2 justify-end"
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground min-h-[36px] -mr-1 px-1 justify-end"
                 aria-label="Go back"
               >
-                <ArrowLeft className="h-4 w-4" /> Back
+                <ArrowLeft className="h-3.5 w-3.5" /> Back
               </button>
             )}
           </div>
           
           <div
-            className="flex gap-2"
+            className="flex gap-1.5 py-1 -my-1"
             role="progressbar"
             aria-valuemin={1}
             aria-valuemax={6}
@@ -591,38 +630,56 @@ const Book = () => {
             {[1, 2, 3, 4, 5, 6].map(n => {
               const displayStep = step === 5 && payStep === "pay" ? 6 : step;
               const filled = n <= displayStep;
+              const isCurrent = n === displayStep;
               return (
-                <div key={n} className={`h-1 flex-1 rounded-full transition ${filled ? "bg-primary" : "bg-secondary"}`} />
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => handleJumpToStep(n)}
+                  className={`h-2 flex-1 rounded-full transition-all duration-200 cursor-pointer group relative ${
+                    isCurrent
+                      ? "bg-primary ring-2 ring-primary/30"
+                      : filled
+                      ? "bg-primary/80 hover:bg-primary"
+                      : "bg-secondary hover:bg-primary/40"
+                  }`}
+                  title={`Click to navigate to Step ${n}`}
+                  aria-label={`Step ${n}`}
+                >
+                  <span className="sr-only">Step {n}</span>
+                </button>
               );
             })}
           </div>
         </div>
 
-        {/* "What happens next" reassurance ribbon — only on the first step where it's most needed */}
+        {/* "What happens next" reassurance ribbon — compact & sleek */}
         {step === 1 && (
-          <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/5 p-4 sm:p-5">
-            <div className="text-[10px] uppercase tracking-[0.25em] text-primary mb-3 font-medium">
-              What happens next
+          <div className="mb-3 rounded-xl border border-primary/20 bg-primary/5 px-3.5 py-2 text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-semibold shrink-0">
+                What happens next
+              </span>
+              <ol className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
+                {[
+                  { n: "1", t: "Pick your service", d: "Browse menu & pricing" },
+                  { n: "2", t: "Pick a time", d: "See live availability" },
+                  { n: "3", t: "Save card", d: "No charge today" },
+                ].map(s => (
+                  <li key={s.n} className="flex items-center gap-2">
+                    <span className="shrink-0 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-medium inline-flex items-center justify-center">
+                      {s.n}
+                    </span>
+                    <div className="min-w-0">
+                      <span className="font-medium text-foreground">{s.t}</span>
+                      <span className="text-[11px] text-muted-foreground ml-1 hidden md:inline">({s.d})</span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
             </div>
-            <ol className="grid sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
-              {[
-                { n: "1", t: "Pick your service", d: "Browse menu & pricing" },
-                { n: "2", t: "Pick a time", d: "See live availability" },
-                { n: "3", t: "Save card", d: "No charge today" },
-              ].map(s => (
-                <li key={s.n} className="flex items-start gap-2.5">
-                  <span className="shrink-0 mt-0.5 h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-medium inline-flex items-center justify-center">
-                    {s.n}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="font-medium leading-tight">{s.t}</div>
-                    <div className="text-xs text-muted-foreground leading-snug">{s.d}</div>
-                  </div>
-                </li>
-              ))}
-            </ol>
-            <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
-              Your card is only used for the service you receive or if you no-show / cancel within 48h ($200 fee).
+            <p className="text-[11px] text-muted-foreground mt-1.5 border-t border-primary/10 pt-1 leading-tight">
+              Card on file is only used for services received or no-shows/cancellations within 48h ($200 fee).
             </p>
           </div>
         )}
