@@ -122,30 +122,14 @@ const Index = () => {
                 </h1>
               </div>
 
-              {/* Subheader info block */}
-              <div className="w-full border-t border-border pt-4 mb-6 flex flex-col items-center gap-0.5">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-light">
-                  CONSIDERED CARE
-                </span>
-                <span className="text-xs font-semibold tracking-wider text-card-foreground">
-                  SAN JOSE
-                </span>
-              </div>
-
-              {/* CTA Button & Pagination Dots */}
-              <div className="w-full space-y-4">
+              {/* CTA Button */}
+              <div className="w-full mt-6">
                 <Button
                   asChild
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-4 h-auto text-xs font-medium tracking-[0.2em] uppercase rounded-lg shadow-md transition-all active:scale-[0.98]"
                 >
                   <Link to={bookHref}>BOOK AN APPOINTMENT</Link>
                 </Button>
-
-                <div className="flex justify-center items-center gap-2 pt-1">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  <div className="w-2 h-2 rounded-full bg-border" />
-                  <div className="w-2 h-2 rounded-full bg-border" />
-                </div>
               </div>
             </div>
           </div>
