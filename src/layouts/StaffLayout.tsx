@@ -39,10 +39,25 @@ interface Group {
 }
 
 export default function StaffLayout() {
-  const { user, loading, roles, isAdmin, isNP, isStaff, isReceptionist, isScheduler, isPrivacyOfficer, isPrivileged } = useAuth();
+  const { user, loading, roles, isAdmin, isNP, isStaff, isReceptionist, isScheduler, isPrivacyOfficer, isMedicalDirector, isPrivileged } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    today: true,
+    schedule: true,
+    clients: true,
+    security_officer: true,
+    clinical: true,
+    admin: true,
+  });
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups(prev => ({
+      ...prev,
+      [key]: prev[key] === undefined ? false : !prev[key]
+    }));
+  };
 
   // Privileged roles requiring MFA (aal2) — isPrivileged comes from useAuth
   const [mfaOk, setMfaOk] = useState(true);
@@ -156,11 +171,7 @@ export default function StaffLayout() {
           { to: "/staff/clinical/cosign", label: "Cosign Queue", icon: ShieldCheck },
           { to: "/staff/clinical/safety", label: "Safety & Protocols", icon: ShieldAlert },
           { to: "/staff/compliance", label: "My Compliance", icon: ShieldCheck },
-          { to: "/staff/hipaa-policies", label: "HIPAA Policies", icon: BookOpen },
-          { to: "/staff/audit-report", label: "Audit Report", icon: HistoryIcon },
-          { to: "/staff/breach-report", label: "Incident / Breach Reports", icon: ShieldAlert },
-          { to: "/staff/vendors", label: "Vendors / Device Inventory", icon: Laptop },
-          { to: "/staff/inventory", label: "Inventory", icon: Boxes },
+          { to: "/staff/inventory", label: "Inventory & Supplies", icon: Boxes },
         ],
       },
     ];
@@ -191,10 +202,9 @@ export default function StaffLayout() {
   }
 
   const footerLinkCls = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition ${
-      isActive
-        ? "bg-primary text-primary-foreground font-semibold"
-        : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+    `flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition ${isActive
+      ? "bg-primary text-primary-foreground font-semibold"
+      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
     }`;
 
   const isSubActive = (targetUrl: string) => {
@@ -338,56 +348,56 @@ export default function StaffLayout() {
       <div className="flex-1 flex overflow-hidden min-h-0">
 
 
-        {/* Desktop Sidebar */}
-        <aside className="hidden xl:flex flex-col w-64 border-r border-border bg-card p-4 shrink-0 justify-between">
-          <div className="space-y-4 overflow-y-auto pr-1">
-            <nav className="space-y-1">{NavInner}</nav>
-          </div>
+      {/* Desktop Sidebar */}
+      <aside className="hidden xl:flex flex-col w-64 border-r border-border bg-card p-4 shrink-0 justify-between">
+        <div className="space-y-4 overflow-y-auto pr-1">
+          <nav className="space-y-1">{NavInner}</nav>
+        </div>
 
-          <div className="pt-3 border-t border-border">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start text-xs text-muted-foreground hover:text-foreground"
-              onClick={async () => {
-                clearDemoAuthSession();
-                await supabase.auth.signOut();
-                navigate("/staff/login");
-              }}
-            >
-              <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
-            </Button>
-          </div>
-        </aside>
+        <div className="pt-3 border-t border-border">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-xs text-muted-foreground hover:text-foreground"
+            onClick={async () => {
+              clearDemoAuthSession();
+              await supabase.auth.signOut();
+              navigate("/staff/login");
+            }}
+          >
+            <LogOut className="h-3.5 w-3.5 mr-2" /> Sign out
+          </Button>
+        </div>
+      </aside>
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-background min-w-0">
-          <Outlet />
-        </main>
-      </div>
-
-      <StaffBottomNav
-        canCheckout={isAdmin || isScheduler || isReceptionist || isStaff}
-        canClinical={isAdmin || isNP || isStaff}
-        pendingBadge={pendingCount + unreadSms}
-      />
-
-      <CommandPalette isAdmin={isAdmin} />
-      <KeyboardShortcutsHelp />
-
-      <AlertDialog open={showWarning}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you still there?</AlertDialogTitle>
-            <AlertDialogDescription>
-              For patient privacy, you will be automatically signed out in {countdown} seconds due to inactivity.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={staySignedIn}>Stay Signed In</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Main Content Area */}
+      <main className="flex-1 overflow-y-auto bg-background min-w-0">
+        <Outlet />
+      </main>
     </div>
-  );
+
+    <StaffBottomNav
+      canCheckout={isAdmin || isScheduler || isReceptionist || isStaff}
+      canClinical={isAdmin || isNP || isStaff}
+      pendingBadge={pendingCount + unreadSms}
+    />
+
+    <CommandPalette isAdmin={isAdmin} />
+    <KeyboardShortcutsHelp />
+
+    <AlertDialog open={showWarning}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you still there?</AlertDialogTitle>
+          <AlertDialogDescription>
+            For patient privacy, you will be automatically signed out in {countdown} seconds due to inactivity.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction onClick={staySignedIn}>Stay Signed In</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </div>
+);
 }

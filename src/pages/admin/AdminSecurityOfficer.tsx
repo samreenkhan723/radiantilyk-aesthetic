@@ -55,7 +55,7 @@ export default function AdminSecurityOfficer() {
             </Badge>
             <span className="text-xs text-muted-foreground">• 45 CFR §164.308 / §164.312 Governance</span>
           </div>
-          <h1 className="font-serif text-2xl md:text-3xl font-medium">Privacy & Security Officer Control Hub</h1>
+          <h1 className="font-serif text-xl sm:text-2xl font-medium">Privacy & Security Officer Control Hub</h1>
           <p className="text-xs text-muted-foreground">
             Continuous enterprise monitoring of practice HIPAA compliance, risk management, PHI access audit logs, incident response, and IT security governance.
           </p>

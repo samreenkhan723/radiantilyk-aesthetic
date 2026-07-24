@@ -110,8 +110,8 @@ export default function AdminHub() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-6">
         <div>
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <h1 className="font-serif text-2xl sm:text-3xl">Admin Dashboard</h1>
-            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-medium px-2.5 py-0.5">
+            <h1 className="font-serif text-xl sm:text-2xl font-medium">Admin Dashboard</h1>
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 font-medium px-2.5 py-0.5 text-xs">
               <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> Enterprise HIPAA Platform
             </Badge>
           </div>

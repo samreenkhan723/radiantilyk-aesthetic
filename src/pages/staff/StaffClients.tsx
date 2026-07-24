@@ -559,7 +559,7 @@ export default function StaffClients() {
     <div className="p-4 sm:p-8 max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="font-serif text-2xl sm:text-3xl">Clients</h1>
+          <h1 className="font-serif text-xl sm:text-2xl font-medium">Clients</h1>
           <p className="text-xs text-muted-foreground mt-1">
             {allClients.length} total · {accountsCount} with account · {missingCount} without
           </p>

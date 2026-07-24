@@ -1,7 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { MapPin, Phone, Menu, X } from "lucide-react";
+import { MapPin, Phone, Menu, X, Mail, UserCheck, Instagram, Facebook, Globe, Navigation } from "lucide-react";
 import rkaLogo from "@/assets/rka-logo.webp";
 import ThemeToggle from "@/components/ThemeToggle";
 import NewsletterSignup from "@/components/NewsletterSignup";
@@ -11,8 +11,6 @@ export const SiteHeader = ({ isPortal = false }: { isPortal?: boolean }) => {
   const location = useLocation();
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
-  // Skip-to-content: focuses the first <main> on the page without requiring
-  // every route to thread an id. Visually hidden until keyboard-focused.
   const skipToMain: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
     e.preventDefault();
     const main = document.querySelector("main") as HTMLElement | null;
@@ -111,49 +109,118 @@ export const SiteHeader = ({ isPortal = false }: { isPortal?: boolean }) => {
 };
 
 export const SiteFooter = () => (
-  <footer className="border-t border-border mt-20">
-    <div className="container mx-auto px-4 py-12 grid gap-8 sm:grid-cols-2 md:grid-cols-3 text-sm">
-      <div>
-        <div className="flex items-center gap-2.5">
-          <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-10 w-10 rounded-full object-cover" />
-          <div className="font-serif text-xl">Radiantilyk Aesthetic</div>
+  <footer className="border-t border-border bg-background text-foreground pt-16 pb-8 transition-colors duration-300">
+    <div className="container mx-auto px-6 md:px-10 grid gap-10 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-xs">
+      {/* Column 1: Brand Info */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-10 w-10 rounded-full object-cover border border-border" />
+          <div>
+            <div className="font-serif text-lg font-medium text-foreground">Radiantilyk Aesthetic</div>
+            <div className="text-[10px] uppercase tracking-widest text-primary font-semibold">MEDSPA</div>
+          </div>
         </div>
-        <p className="text-muted-foreground mt-3 text-xs leading-relaxed">A quiet ritual of refinement. Luxury medspa in San Jose.</p>
-      </div>
-      <div>
-        <div className="font-medium mb-3">San Jose Studio</div>
-        <p className="text-muted-foreground text-xs leading-relaxed">2100 Curtner Ave, Ste 1B<br />San Jose, CA 95124</p>
-      </div>
-
-      <div>
-        <div className="font-medium mb-3">Contact</div>
-        <p className="text-muted-foreground text-xs leading-relaxed">
-          <a href="tel:4083511873" className="hover:text-foreground">Call 408 · 351 · 1873</a><br />
-          <a href="sms:+14083511873" className="hover:text-foreground">Text us (408 · 351 · 1873)</a><br />
-          <a href="mailto:kv@rkaglow.com" className="hover:text-foreground">kv@rkaglow.com</a><br />
-          <Link to="/waitlist" className="hover:text-foreground">Join the waitlist</Link>
+        <p className="flex items-start gap-1.5 text-muted-foreground text-[11px] leading-relaxed">
+          <MapPin className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+          <span>2100 Curtner Ave, Ste 18, San Jose, CA 95124</span>
         </p>
-        <Link to="/staff" className="text-[10px] uppercase tracking-widest text-muted-foreground mt-4 inline-block hover:text-foreground">Staff Login</Link>
+        <p className="text-muted-foreground text-[11px] leading-relaxed italic">
+          A quiet ritual of refinement. Luxury medspa in San Jose.
+        </p>
+        <div className="flex items-center gap-3 pt-1">
+          <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram" className="p-2 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground transition text-primary">
+            <Instagram className="h-3.5 w-3.5" />
+          </a>
+          <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className="p-2 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground transition text-primary">
+            <Facebook className="h-3.5 w-3.5" />
+          </a>
+          <a href="https://g.page/r/CSd3Q5ZmyEyKEBM/review" target="_blank" rel="noreferrer" aria-label="Google Reviews" className="p-2 rounded-full border border-border bg-card hover:bg-primary hover:text-primary-foreground transition text-primary">
+            <Globe className="h-3.5 w-3.5" />
+          </a>
+        </div>
       </div>
 
+      {/* Column 2: Studio Location */}
+      <div className="space-y-3">
+        <div className="font-serif text-sm font-semibold text-foreground uppercase tracking-wider">San Jose Studio</div>
+        <p className="text-muted-foreground text-[11px] leading-relaxed">
+          2100 Curtner Ave, Ste 18<br />
+          San Jose, CA 95124
+        </p>
+        <a
+          href="https://maps.google.com/?q=2100+Curtner+Ave+Ste+18+San+Jose+CA+95124"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-secondary hover:bg-accent text-secondary-foreground font-medium text-[11px] transition shadow-xs"
+        >
+          <Navigation className="h-3 w-3 text-primary" />
+          Get Directions
+        </a>
+      </div>
+
+      {/* Column 3: Contact */}
+      <div className="space-y-2.5">
+        <div className="font-serif text-sm font-semibold text-foreground uppercase tracking-wider mb-3">Contact</div>
+        <a href="tel:4083511873" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-[11px]">
+          <Phone className="h-3.5 w-3.5 text-primary" />
+          Call 408 · 351 · 1873
+        </a>
+        <a href="sms:+14083511873" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-[11px]">
+          <Mail className="h-3.5 w-3.5 text-primary" />
+          Text us (408 · 351 · 1873)
+        </a>
+        <a href="mailto:kv@rkaglow.com" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-[11px]">
+          <Mail className="h-3.5 w-3.5 text-primary" />
+          kv@rkaglow.com
+        </a>
+        <Link to="/waitlist" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition text-[11px] pt-1">
+          <UserCheck className="h-3.5 w-3.5 text-primary" />
+          Join the waitlist
+        </Link>
+        <Link to="/staff" className="text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground pt-2 inline-block">
+          Staff Login →
+        </Link>
+      </div>
+
+      {/* Column 4: Hours */}
+      <div className="space-y-3">
+        <div className="font-serif text-sm font-semibold text-foreground uppercase tracking-wider">Hours</div>
+        <div className="space-y-1.5 text-muted-foreground text-[11px]">
+          <div className="flex justify-between gap-2 border-b border-border/60 pb-1">
+            <span>Mon — Fri</span>
+            <span className="font-medium text-foreground">9:00 AM — 5:00 PM</span>
+          </div>
+          <div className="flex justify-between gap-2 border-b border-border/60 pb-1">
+            <span>Sat</span>
+            <span className="font-medium text-foreground">9:00 AM — 2:00 PM</span>
+          </div>
+          <div className="flex justify-between gap-2 pb-1">
+            <span>Sun</span>
+            <span className="text-primary font-medium">Closed</span>
+          </div>
+        </div>
+      </div>
     </div>
-    <div className="container mx-auto px-4 pb-10">
-      <div className="rounded-2xl border border-border bg-card/60 p-6 md:p-8 max-w-3xl mx-auto">
+
+    {/* Newsletter Container */}
+    <div className="container mx-auto px-6 mt-12 pb-8">
+      <div className="rounded-xl border border-border bg-card/80 backdrop-blur p-6 md:p-8 max-w-3xl mx-auto shadow-sm">
         <NewsletterSignup />
       </div>
     </div>
-    <div className="border-t border-border py-4 text-center text-[11px] text-muted-foreground flex flex-col sm:flex-row gap-2 sm:gap-4 items-center justify-center">
+
+    {/* Footer Bottom Bar */}
+    <div className="border-t border-border pt-6 pb-2 text-center text-[11px] text-muted-foreground flex flex-wrap items-center justify-center gap-2 sm:gap-4 px-4">
       <span>© {new Date().getFullYear()} Radiantilyk Aesthetic</span>
-      <span className="hidden sm:inline">·</span>
+      <span>·</span>
       <Link to="/faq" className="hover:text-foreground">FAQ</Link>
-      <span className="hidden sm:inline">·</span>
+      <span>·</span>
       <Link to="/journal" className="hover:text-foreground">Journal</Link>
-      <span className="hidden sm:inline">·</span>
+      <span>·</span>
       <Link to="/account?tab=profile" className="hover:text-foreground">Refer & earn</Link>
+      <span>·</span>
       <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
-
-
-      <span className="hidden sm:inline">·</span>
+      <span>·</span>
       <Link to="/terms" className="hover:text-foreground">Terms</Link>
     </div>
   </footer>

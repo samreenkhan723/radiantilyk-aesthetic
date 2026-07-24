@@ -67,10 +67,10 @@ export async function fetchUnifiedStaffMembers(): Promise<UnifiedStaffMember[]> 
   });
 
   const defaultProviders = [
-    { id: "staff-dhruva", full_name: "Dhruva", title: "Medical Director", email: "dhruva@gmail.com", is_active: true },
-    { id: "staff-shaley", full_name: "Shaley", title: "General Physician", email: "shaley@gmail.com", is_active: true },
-    { id: "staff-oggy", full_name: "Oggy", title: "General Practitioner", email: "oggy@gmail.com", is_active: true },
-    { id: "staff-cherry", full_name: "Cherry", title: "Provider", email: "cherry@gmail.com", is_active: true },
+    { id: "staff-dhruva", full_name: "Dhruva", title: "Medical Director", email: "dhruva@gmail.com", role: "medical_director", is_active: true },
+    { id: "staff-shaley", full_name: "Shaley", title: "General Physician", email: "shaley@gmail.com", role: "provider", is_active: true },
+    { id: "staff-oggy", full_name: "Oggy", title: "General Practitioner", email: "oggy@gmail.com", role: "provider", is_active: true },
+    { id: "staff-cherry", full_name: "Cherry", title: "Provider", email: "cherry@gmail.com", role: "provider", is_active: true },
   ];
 
   defaultProviders.forEach((d) => {
