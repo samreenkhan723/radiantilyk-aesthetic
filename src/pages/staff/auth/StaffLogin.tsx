@@ -407,7 +407,6 @@ export default function StaffLogin() {
                 </div>
               )}
               {/* Demo Credentials Quick Fill Box */}
-<<<<<<< HEAD:src/pages/StaffLogin.tsx
               <div className="mb-3.5 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs">
                 <div className="font-semibold text-foreground mb-0.5 flex items-center justify-between">
                   <span>⚡ Quick Demo Credentials</span>
@@ -427,31 +426,6 @@ export default function StaffLogin() {
                     </div>
                     <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded">Full Access</span>
                   </button>
-=======
-              <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
-                <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
-                <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
-<<<<<<< HEAD:src/pages/staff/auth/StaffLogin.tsx
-                <div className={`grid gap-2 ${roleParam === "admin" ? "grid-cols-2" : roleParam === "staff" ? "grid-cols-1" : "grid-cols-3"}`}>
-                  {roleParam !== "staff" && (
-=======
-
-                {activeRole === "admin" && (
-                  <div className="grid grid-cols-1 gap-2">
->>>>>>> af9eb221f0523207d0ebb8ffbb7a29d052d3106f:src/pages/StaffLogin.tsx
-                    <button
-                      type="button"
-                      onClick={() => fillDemoCredentials("admin@gmail.com")}
-                      className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
-                    >
-                      <div>
-                        👑 <strong>Admin</strong>
-                        <span className="text-[10px] text-muted-foreground block font-mono">admin@gmail.com</span>
-                      </div>
-                      <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded">Full Admin Access</span>
-                    </button>
-                  </div>
->>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb:src/pages/staff/auth/StaffLogin.tsx
                 )}
 
                 {activeRole === "staff" && (
@@ -477,10 +451,6 @@ export default function StaffLogin() {
                     >
                       💉 <strong>Staff</strong><br /><span className="text-[9px] text-muted-foreground truncate block">staff@gmail.com</span>
                     </button>
-<<<<<<< HEAD:src/pages/staff/auth/StaffLogin.tsx
-                  )}
-                </div>
-=======
                   </div>
                 )}
 
@@ -497,7 +467,6 @@ export default function StaffLogin() {
                     <span className="text-[10px] bg-secondary text-secondary-foreground font-semibold px-2 py-0.5 rounded">Client Portal</span>
                   </button>
                 )}
->>>>>>> af9eb221f0523207d0ebb8ffbb7a29d052d3106f:src/pages/StaffLogin.tsx
               </div>
 
               <form onSubmit={submitCredentials} className="space-y-3">

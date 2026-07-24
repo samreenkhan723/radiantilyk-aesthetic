@@ -223,24 +223,6 @@ const Book = () => {
   useEffect(() => {
     if (loading) return;
     try {
-<<<<<<< HEAD:src/pages/Book.tsx
-      if (serviceIds.length === 0 && !locationId && !staffId && !date && !slot) {
-        localStorage.removeItem("rka_book_draft");
-      } else {
-        localStorage.setItem("rka_book_draft", JSON.stringify({
-          when: Date.now(),
-          step,
-          serviceIds, locationId, staffId,
-          date: date ? date.toISOString() : null,
-          slot,
-          client: {
-            firstName: client.firstName, lastName: client.lastName,
-            email: client.email, phone: client.phone, dob: client.dob,
-          },
-        }));
-      }
-    } catch {}
-=======
       localStorage.setItem("rka_book_draft", JSON.stringify({
         when: Date.now(),
         step,
@@ -253,7 +235,6 @@ const Book = () => {
         },
       }));
     } catch { }
->>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb:src/pages/patient/Book.tsx
   }, [loading, step, serviceIds, locationId, staffId, date, slot, client.firstName, client.lastName, client.email, client.phone, client.dob]);
 
   const selectedServices = useMemo(

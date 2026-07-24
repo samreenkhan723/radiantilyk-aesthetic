@@ -223,113 +223,6 @@ export default function StaffLayout() {
 
   const NavInner = (
     <>
-<<<<<<< HEAD:src/pages/staff/StaffLayout.tsx
-      {isAdmin ? (
-        <div className="space-y-4">
-          {(() => {
-            const isOpen = openGroups["admin"] !== false;
-            const hasActiveChild = adminNavItems.some(item => isSubActive(item.to));
-            return (
-              <div className="space-y-1">
-                <button
-                  type="button"
-                  onClick={() => toggleGroup("admin")}
-                  className={`w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider transition rounded-lg hover:bg-secondary/60 ${hasActiveChild ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">Admin Modules</span>
-                  </div>
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                </button>
-                {isOpen && (
-                  <div className="space-y-0.5 pl-1.5 pt-0.5">
-                    {adminNavItems.map((item) => {
-                      const Icon = item.icon;
-                      const active = isSubActive(item.to);
-                      return (
-                        <NavLink
-                          key={item.to}
-                          to={item.to}
-                          onClick={() => setOpen(false)}
-                          className={() =>
-                            `flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition ${active
-                              ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                            }`
-                          }
-                        >
-                          <Icon className="h-4 w-4 shrink-0" />
-                          <span className="truncate">{item.label}</span>
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {staffGroups.filter(g => g.show).map((g) => {
-            const visibleChildren = g.children.filter(c => c.show !== false);
-            if (visibleChildren.length === 0) return null;
-            const isOpen = openGroups[g.key] !== false;
-            const GIcon = g.icon;
-            const hasActiveChild = visibleChildren.some(c => isSubActive(c.to));
-
-            return (
-              <div key={g.key} className="space-y-1">
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(g.key)}
-                  className={`w-full flex items-center justify-between px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider transition rounded-lg hover:bg-secondary/60 ${hasActiveChild ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground"}`}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <GIcon className="h-3.5 w-3.5 shrink-0" />
-                    <span className="truncate">{g.label}</span>
-                    {g.badge ? (
-                      <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-primary/15 text-primary font-bold shrink-0">
-                        {g.badge}
-                      </span>
-                    ) : null}
-                  </div>
-                  <ChevronDown className={`h-3.5 w-3.5 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-                </button>
-
-                {isOpen && (
-                  <div className="space-y-0.5 pl-1.5 pt-0.5">
-                    {visibleChildren.map((c) => {
-                      const CIcon = c.icon;
-                      const active = isSubActive(c.to);
-                      return (
-                        <NavLink
-                          key={c.to}
-                          to={c.to}
-                          onClick={() => setOpen(false)}
-                          className={() =>
-                            `flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${active
-                              ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                            }`
-                          }
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <CIcon className="h-4 w-4 shrink-0" />
-                            <span className="truncate">{c.label}</span>
-                          </div>
-                          {c.badge ? (
-                            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-primary/15 text-primary font-bold shrink-0">
-                              {c.badge}
-                            </span>
-                          ) : null}
-                        </NavLink>
-                      );
-                    })}
-                  </div>
-                )}
-=======
       <div className="space-y-5">
         {staffGroups.filter(g => g.show).map((g) => {
           const visibleChildren = g.children.filter(c => c.show !== false);
@@ -343,7 +236,6 @@ export default function StaffLayout() {
                     {g.badge}
                   </span>
                 ) : null}
->>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb:src/layouts/StaffLayout.tsx
               </div>
               {visibleChildren.map((c) => {
                 const CIcon = c.icon;
@@ -422,29 +314,13 @@ export default function StaffLayout() {
               </SheetContent>
             </Sheet>
           </div>
-<<<<<<< HEAD:src/pages/staff/StaffLayout.tsx
-          <Link to={isAdmin ? "/staff/admin" : (!isAdmin && roles.includes("privacy_officer")) ? "/staff/security-officer" : "/staff/today"} className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition">
-=======
 
           <Link to={roles.includes("privacy_officer") ? "/staff/security-officer" : "/staff/today"} className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition">
->>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb:src/layouts/StaffLayout.tsx
             <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full object-cover shadow-soft" />
             <div className="text-left hidden sm:block">
               <div className="font-serif text-sm leading-tight font-medium">Radiantilyk Aesthetic</div>
               <div className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-<<<<<<< HEAD:src/pages/staff/StaffLayout.tsx
-                {isAdmin
-                  ? "Admin Dashboard"
-                  : isMedicalDirector
-                  ? "Medical Director Hub"
-                  : roles.includes("privacy_officer")
-                  ? "Security Officer Hub"
-                  : (isNP && !isStaff)
-                  ? "Provider Hub"
-                  : "Staff Hub"}
-=======
                 {roles.includes("privacy_officer") ? "Security Officer Hub" : "Staff Hub"}
->>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb:src/layouts/StaffLayout.tsx
               </div>
             </div>
           </Link>
@@ -453,47 +329,16 @@ export default function StaffLayout() {
         {/* Right Corner: Portal Badge */}
         <div className="flex items-center gap-2 md:gap-3">
           <div className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold uppercase tracking-wider ${
-<<<<<<< HEAD:src/pages/staff/StaffLayout.tsx
-            isAdmin
-              ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-              : isMedicalDirector
-              ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
-              : roles.includes("privacy_officer")
-=======
             roles.includes("privacy_officer")
->>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb:src/layouts/StaffLayout.tsx
               ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
               : "bg-primary/10 text-primary border border-primary/20"
           }`}>
             <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             <span className="hidden sm:inline">
-<<<<<<< HEAD:src/pages/staff/StaffLayout.tsx
-              {isAdmin
-                ? "Admin Portal"
-                : isMedicalDirector
-                ? "Medical Director Portal"
-                : roles.includes("privacy_officer")
-                ? "Security Officer Portal"
-                : (isNP && !isStaff)
-                ? "Provider Portal"
-                : "Staff Portal"}
-            </span>
-            <span className="sm:hidden">
-              {isAdmin
-                ? "Admin"
-                : isMedicalDirector
-                ? "Medical Director"
-                : roles.includes("privacy_officer")
-                ? "Security Officer"
-                : (isNP && !isStaff)
-                ? "Provider"
-                : "Staff"}
-=======
               {roles.includes("privacy_officer") ? "Security Officer Portal" : "Staff Portal"}
             </span>
             <span className="sm:hidden">
               {roles.includes("privacy_officer") ? "Security Officer" : "Staff"}
->>>>>>> 92a1b2990c232be6fcf6ef3c763f1a8d824ae6cb:src/layouts/StaffLayout.tsx
             </span>
           </div>
         </div>
