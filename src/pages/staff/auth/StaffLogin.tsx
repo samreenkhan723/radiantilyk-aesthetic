@@ -183,7 +183,13 @@ export default function StaffLogin() {
     const cleanEmail = targetEmail.trim().toLowerCase();
     setEmail(cleanEmail);
     setPassword("12345678");
-    toast.info(`${cleanEmail === "admin@gmail.com" ? "Admin" : "Staff"} credentials populated in Email & Password fields. Click Continue to sign in.`);
+    const roleLabel =
+      cleanEmail === "admin@gmail.com" ? "Admin" :
+      cleanEmail === "md@gmail.com" ? "Medical Director" :
+      cleanEmail === "officer@gmail.com" ? "Security Officer" :
+      cleanEmail === "user@gmail.com" ? "Patient / User" :
+      "Staff";
+    toast.info(`${roleLabel} credentials populated in Email & Password fields. Click Continue to sign in.`);
   };
 
   const submitCredentials = async (e: React.FormEvent) => {
@@ -191,11 +197,32 @@ export default function StaffLogin() {
     setLoading(true);
     const cleanEmail = email.trim().toLowerCase();
 
-    // 1. Check built-in demo accounts first
-    if (cleanEmail === "admin@gmail.com" || cleanEmail === "staff@gmail.com" || cleanEmail === "officer@gmail.com") {
+    // 1. Check built-in demo patient user account
+    if (cleanEmail === "user@gmail.com") {
+      setDemoAuthSession("user@gmail.com", []);
+      toast.success("Signed in as Demo Patient");
+      setLoading(false);
+      navigate("/account", { replace: true });
+      return;
+    }
+
+    // 2. Check built-in staff/admin demo accounts
+    if (
+      cleanEmail === "admin@gmail.com" ||
+      cleanEmail === "staff@gmail.com" ||
+      cleanEmail === "officer@gmail.com" ||
+      cleanEmail === "md@gmail.com"
+    ) {
       const isAd = cleanEmail === "admin@gmail.com";
       const isOfficer = cleanEmail === "officer@gmail.com";
-      const roles: AppRole[] = isAd ? ["admin"] : isOfficer ? ["privacy_officer", "staff"] : ["staff", "nurse_practitioner"];
+      const isMD = cleanEmail === "md@gmail.com";
+      const roles: AppRole[] = isAd
+        ? ["admin"]
+        : isOfficer
+        ? ["privacy_officer", "staff"]
+        : isMD
+        ? ["medical_director", "staff"]
+        : ["staff", "nurse_practitioner"];
       setPendingDemoLogin({ cleanEmail, roles, isAd });
       setLoading(false);
       setStep("mfa-verify");
@@ -215,7 +242,7 @@ export default function StaffLogin() {
     if (matchedApproved) {
       const isAd = matchedApproved.role === "admin";
       const roles: AppRole[] = [matchedApproved.role];
-      if (matchedApproved.role === "provider" || matchedApproved.role === "nurse_practitioner" || matchedApproved.role === "receptionist" || matchedApproved.role === "scheduler") {
+      if (matchedApproved.role === "provider" || matchedApproved.role === "nurse_practitioner" || matchedApproved.role === "medical_director" || matchedApproved.role === "receptionist" || matchedApproved.role === "scheduler") {
         roles.push("staff");
       }
       setPendingDemoLogin({ cleanEmail, roles, isAd });
@@ -328,7 +355,7 @@ export default function StaffLogin() {
     setFactorId(null); setChallengeId(null); setQrSvg(""); setSecret(""); setErrMsg("");
   };
 
-  const activeRole = sp.get("role") === "admin" ? "admin" : "staff";
+  const activeRole = roleParam === "admin" ? "admin" : roleParam === "user" ? "user" : "staff";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -350,8 +377,8 @@ export default function StaffLogin() {
               Staff Login
             </Link>
             <Link
-              to="/account/auth"
-              className="flex-1 py-2 rounded-lg text-muted-foreground hover:text-foreground transition text-center"
+              to="/staff/login?role=user"
+              className={`flex-1 py-2 rounded-lg transition text-center ${activeRole === "user" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"}`}
             >
               User Login
             </Link>
@@ -360,7 +387,7 @@ export default function StaffLogin() {
           <div className="text-center mb-8">
             <div className="font-serif text-3xl md:text-4xl">Radiantilyk Aesthetic</div>
             <div className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground mt-1">
-              {activeRole === "admin" ? "Admin & Management Portal" : "Staff & Provider Portal"}
+              {activeRole === "admin" ? "Admin & Management Portal" : activeRole === "user" ? "Patient & Client Portal" : "Staff & Provider Portal"}
             </div>
           </div>
 
@@ -382,17 +409,37 @@ export default function StaffLogin() {
               <div className="mb-5 rounded-xl border border-primary/20 bg-primary/5 p-3.5 text-xs">
                 <div className="font-semibold text-foreground mb-1">⚡ Quick Demo Credentials</div>
                 <div className="text-muted-foreground mb-2.5">Click a button below to auto-fill demo login details (password: <code className="bg-muted px-1 rounded text-foreground font-mono">12345678</code>):</div>
+<<<<<<< HEAD:src/pages/staff/auth/StaffLogin.tsx
                 <div className={`grid gap-2 ${roleParam === "admin" ? "grid-cols-2" : roleParam === "staff" ? "grid-cols-1" : "grid-cols-3"}`}>
                   {roleParam !== "staff" && (
+=======
+
+                {activeRole === "admin" && (
+                  <div className="grid grid-cols-1 gap-2">
+>>>>>>> af9eb221f0523207d0ebb8ffbb7a29d052d3106f:src/pages/StaffLogin.tsx
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("admin@gmail.com")}
-                      className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
+                      className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
                     >
-                      👑 <strong>Admin</strong><br /><span className="text-[10px] text-muted-foreground truncate block">admin@gmail.com</span>
+                      <div>
+                        👑 <strong>Admin</strong>
+                        <span className="text-[10px] text-muted-foreground block font-mono">admin@gmail.com</span>
+                      </div>
+                      <span className="text-[10px] bg-primary/10 text-primary font-semibold px-2 py-0.5 rounded">Full Admin Access</span>
                     </button>
-                  )}
-                  {roleParam !== "staff" && (
+                  </div>
+                )}
+
+                {activeRole === "staff" && (
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fillDemoCredentials("md@gmail.com")}
+                      className="px-2 py-1.5 rounded-lg border border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 transition text-left text-xs font-medium cursor-pointer text-purple-900 dark:text-purple-300"
+                    >
+                      🩺 <strong>Medical Director</strong><br /><span className="text-[10px] opacity-80 truncate block">md@gmail.com</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("officer@gmail.com")}
@@ -400,17 +447,36 @@ export default function StaffLogin() {
                     >
                       🛡️ <strong>Security Officer</strong><br /><span className="text-[10px] opacity-80 truncate block">officer@gmail.com</span>
                     </button>
-                  )}
-                  {roleParam !== "admin" && (
                     <button
                       type="button"
                       onClick={() => fillDemoCredentials("staff@gmail.com")}
                       className="px-2 py-1.5 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer"
                     >
-                      🩺 <strong>Staff</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
+                      💉 <strong>Staff / Nurse</strong><br /><span className="text-[10px] text-muted-foreground truncate block">staff@gmail.com</span>
                     </button>
+<<<<<<< HEAD:src/pages/staff/auth/StaffLogin.tsx
                   )}
                 </div>
+=======
+                  </div>
+                )}
+
+                {activeRole === "user" && (
+                  <div className="grid grid-cols-1 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fillDemoCredentials("user@gmail.com")}
+                      className="px-3 py-2 rounded-lg border border-border bg-background hover:bg-secondary/60 transition text-left text-xs font-medium cursor-pointer flex items-center justify-between"
+                    >
+                      <div>
+                        👤 <strong>Patient / User</strong>
+                        <span className="text-[10px] text-muted-foreground block font-mono">user@gmail.com</span>
+                      </div>
+                      <span className="text-[10px] bg-secondary text-secondary-foreground font-semibold px-2 py-0.5 rounded">Client Portal</span>
+                    </button>
+                  </div>
+                )}
+>>>>>>> af9eb221f0523207d0ebb8ffbb7a29d052d3106f:src/pages/StaffLogin.tsx
               </div>
 
               <form onSubmit={submitCredentials} className="space-y-5">

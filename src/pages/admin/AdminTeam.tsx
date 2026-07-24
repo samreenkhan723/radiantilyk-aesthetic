@@ -21,10 +21,11 @@ interface Member {
   pending_role?: Role;
 }
 
-type Role = "admin" | "provider" | "nurse_practitioner" | "scheduler" | "receptionist" | "staff" | "privacy_officer";
+type Role = "admin" | "provider" | "nurse_practitioner" | "medical_director" | "scheduler" | "receptionist" | "staff" | "privacy_officer";
 const ROLE_LABELS: Record<Role, string> = {
   admin: "Admin (full access)",
   privacy_officer: "Privacy & Security Officer (HIPAA Policy Approval & Security)",
+  medical_director: "Medical Director (supervising physician — sign & co-sign notes)",
   provider: "Provider (clinical provider)",
   nurse_practitioner: "Nurse Practitioner (GFE + clinical co-sign)",
   scheduler: "Scheduler (manage all bookings)",
@@ -345,7 +346,7 @@ export default function AdminTeam() {
     const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", m.user_id);
     if (delErr) { setBusy(null); toast.error(delErr.message); return; }
     const toInsert: { user_id: string; role: Role }[] = [{ user_id: m.user_id, role: newRole }];
-    if (newRole === "admin" || newRole === "provider" || newRole === "scheduler" || newRole === "receptionist" || newRole === "nurse_practitioner") toInsert.push({ user_id: m.user_id, role: "staff" });
+    if (newRole === "admin" || newRole === "provider" || newRole === "scheduler" || newRole === "receptionist" || newRole === "nurse_practitioner" || newRole === "medical_director") toInsert.push({ user_id: m.user_id, role: "staff" });
     const { error: insErr } = await supabase.from("user_roles").insert(toInsert);
     setBusy(null);
     if (insErr) { toast.error(insErr.message); return; }
@@ -460,6 +461,7 @@ export default function AdminTeam() {
     const inv = invites[m.id];
     const primaryRole: Role = m.pending_role || (
       memberRoles.includes("admin") ? "admin" :
+      memberRoles.includes("medical_director") ? "medical_director" :
       memberRoles.includes("provider") ? "provider" :
       memberRoles.includes("nurse_practitioner") ? "nurse_practitioner" :
       memberRoles.includes("scheduler") ? "scheduler" :
@@ -469,6 +471,7 @@ export default function AdminTeam() {
     );
 
     if (roleFilter === "admin") return primaryRole === "admin";
+    if (roleFilter === "md") return primaryRole === "medical_director";
     if (roleFilter === "provider") return primaryRole === "provider";
     if (roleFilter === "np") return primaryRole === "nurse_practitioner";
     if (roleFilter === "staff") return primaryRole === "staff" || primaryRole === "receptionist" || primaryRole === "scheduler";
@@ -571,6 +574,13 @@ export default function AdminTeam() {
                     <td className="p-3.5 text-right text-emerald-600 font-medium">Admin Approval</td>
                   </tr>
                   <tr>
+                    <td className="p-3.5 font-semibold text-foreground">Medical Director</td>
+                    <td className="p-3.5 text-muted-foreground">Supervising Physician — Sign & Co-Sign Notes</td>
+                    <td className="p-3.5"><Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Enforced AAL2</Badge></td>
+                    <td className="p-3.5 text-muted-foreground">Full Access + Co-Sign</td>
+                    <td className="p-3.5 text-right text-emerald-600 font-medium">Admin Approval</td>
+                  </tr>
+                  <tr>
                     <td className="p-3.5 font-semibold text-foreground">Nurse Practitioner</td>
                     <td className="p-3.5 text-muted-foreground">GFE Assessments & Co-Sign</td>
                     <td className="p-3.5"><Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">Enforced AAL2</Badge></td>
@@ -646,6 +656,12 @@ export default function AdminTeam() {
           Providers
         </button>
         <button
+          onClick={() => setSp({ role: "md" })}
+          className={`px-3.5 py-2 rounded-lg transition shrink-0 ${roleFilter === "md" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"}`}
+        >
+          Medical Directors
+        </button>
+        <button
           onClick={() => setSp({ role: "np" })}
           className={`px-3.5 py-2 rounded-lg transition shrink-0 ${roleFilter === "np" ? "bg-background text-foreground shadow-xs font-semibold" : "text-muted-foreground hover:text-foreground"}`}
         >
@@ -668,6 +684,7 @@ export default function AdminTeam() {
             const inv = invites[m.id];
             const primaryRole: Role = m.pending_role || (
               memberRoles.includes("admin") ? "admin" :
+              memberRoles.includes("medical_director") ? "medical_director" :
               memberRoles.includes("provider") ? "provider" :
               memberRoles.includes("nurse_practitioner") ? "nurse_practitioner" :
               memberRoles.includes("scheduler") ? "scheduler" :

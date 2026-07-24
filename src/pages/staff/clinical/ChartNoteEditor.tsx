@@ -155,7 +155,7 @@ export default function ChartNoteEditor() {
   const { id } = useParams();
   const [sp] = useSearchParams();
   const navigate = useNavigate();
-  const { user, isClinicalStaff, isNP, isAdmin, staffId } = useAuth();
+  const { user, isClinicalStaff, isNP, isMedicalDirector, isAdmin, staffId } = useAuth();
   const isViewMode = !!id;
 
   const [loading, setLoading] = useState(true);
@@ -1161,8 +1161,8 @@ export default function ChartNoteEditor() {
     try {
       const ua = navigator.userAgent;
 
-      const providerRole = isNP ? "Nurse Practitioner" : isAdmin ? "Admin" : "Injector";
-      const requiresCosign = !isNP && !isAdmin; // RN/staff requires NP cosign
+      const providerRole = isMedicalDirector ? "Medical Director" : isNP ? "Nurse Practitioner" : isAdmin ? "Admin" : "Injector";
+      const requiresCosign = !isNP && !isMedicalDirector && !isAdmin; // RN/staff requires NP/MD cosign
       const servicesToDocument = selectedServices.length
         ? selectedServices
         : [{ id: currentServiceId ?? "manual", name: serviceName ?? CATEGORY_LABEL[category], category, appointmentId }];
@@ -1368,7 +1368,7 @@ export default function ChartNoteEditor() {
 
   async function cosign() {
     if (!note || !sigPng || !sigFullName) { toast.error("Sign before submitting"); return; }
-    if (!isNP) { toast.error("NP role required to co-sign"); return; }
+    if (!isNP && !isMedicalDirector) { toast.error("NP or Medical Director role required to co-sign"); return; }
     setSaving(true);
     try {
       const ua = navigator.userAgent;
@@ -1473,13 +1473,13 @@ export default function ChartNoteEditor() {
         </div>
 
 
-        {note.requires_cosign && note.status === "signed" && (isNP || isAdmin) && (
+        {note.requires_cosign && note.status === "signed" && (isNP || isMedicalDirector || isAdmin) && (
           <div className="rounded-lg border border-warning/30 bg-warning-soft dark:bg-warning-soft p-4 space-y-3">
-            <p className="text-sm font-medium">Awaiting NP co-signature</p>
+            <p className="text-sm font-medium">Awaiting NP / Medical Director co-signature</p>
             <MiniSignaturePad
               fullName={sigFullName} onFullNameChange={setSigFullName}
               signaturePng={sigPng} onSignatureChange={setSigPng}
-              nameLabel="Co-signing NP full legal name"
+              nameLabel="Co-signing NP / Medical Director full legal name"
             />
             <Button onClick={cosign} disabled={saving || !sigPng}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null} Co-sign &amp; lock note
