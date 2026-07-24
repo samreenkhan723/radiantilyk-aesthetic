@@ -31,79 +31,81 @@ export const SiteHeader = ({ isPortal = false }: { isPortal?: boolean }) => {
       >
         Skip to main content
       </a>
-    <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-40">
-      <div className="hidden md:block bg-secondary/50 text-xs">
-        <div className="container mx-auto flex items-center justify-between py-2 text-muted-foreground">
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-primary" /> San Jose · 2100 Curtner Ave, Ste 1B</span>
-          </div>
+      <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-40">
+        <div className="hidden md:block bg-secondary/50 text-xs">
+          <div className="container mx-auto flex items-center justify-between py-2 text-muted-foreground">
+            <div className="flex items-center gap-6">
+              <span className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-primary" /> San Jose · 2100 Curtner Ave, Ste 1B</span>
+            </div>
 
-          <div className="flex items-center gap-4">
-            <a href="sms:+14083511873" className="hover:text-foreground">Text us</a>
-            <span className="opacity-30">·</span>
-            <a href="tel:4083511873" className="flex items-center gap-1.5 hover:text-foreground"><Phone className="h-3 w-3" /> 408 · 351 · 1873</a>
+            <div className="flex items-center gap-4">
+              <a href="sms:+14083511873" className="hover:text-foreground">Text us</a>
+              <span className="opacity-30">·</span>
+              <a href="tel:4083511873" className="flex items-center gap-1.5 hover:text-foreground"><Phone className="h-3 w-3" /> 408 · 351 · 1873</a>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="container mx-auto px-4 flex items-center justify-between py-4 gap-3">
-        <Link to="/" className="flex items-center gap-2.5 sm:gap-3 leading-tight min-w-0 md:mr-auto">
-          <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover shadow-soft shrink-0" />
-          <div className="flex flex-col min-w-0">
-            <span className="font-serif text-lg sm:text-2xl tracking-wide truncate">
-              <span className="sm:hidden">Radiantilyk</span>
-              <span className="hidden sm:inline">Radiantilyk Aesthetic</span>
-            </span>
-            <span className="hidden sm:inline text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Medspa</span>
-          </div>
-        </Link>
-        <nav className="hidden md:flex items-center gap-8 text-sm">
-          {!isPortal && (
-            <>
-              <NavLink to="/" end className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Home</NavLink>
-              <NavLink to="/services" className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Services & Pricing</NavLink>
-              <NavLink to="/account/auth" className={({isActive}) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>My Account</NavLink>
-            </>
-          )}
-          <ThemeToggle />
-          <NavLink to="/book" className="rounded-full bg-primary px-5 py-2 text-primary-foreground hover:opacity-90 transition shadow-soft">Book Appointment</NavLink>
-        </nav>
-        <div className="md:hidden flex items-center gap-2 shrink-0">
-          <Link to="/book" className="rounded-full bg-primary px-3.5 py-2 text-sm text-primary-foreground">Book</Link>
-          <button
-            type="button"
-            onClick={() => setOpen(v => !v)}
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
-            className="relative z-50 inline-flex items-center justify-center h-12 w-12 -mr-2 rounded-full border border-border bg-background text-foreground active:scale-95 touch-manipulation"
-          >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        </div>
-      </div>
-
-
-      {open && (
-        <div className="md:hidden border-t border-border bg-background">
-          <nav className="container mx-auto px-4 py-3 flex flex-col text-sm">
+        <div className="container mx-auto px-4 flex items-center justify-between py-4 gap-3">
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 leading-tight min-w-0 md:mr-auto">
+            <img src={rkaLogo} alt="Radiantilyk Aesthetic" className="h-10 w-10 sm:h-12 sm:w-12 rounded-full object-cover shadow-soft shrink-0" />
+            <div className="flex flex-col min-w-0">
+              <span className="font-serif text-lg sm:text-2xl tracking-wide truncate">
+                <span className="sm:hidden">Radiantilyk</span>
+                <span className="hidden sm:inline">Radiantilyk Aesthetic</span>
+              </span>
+              <span className="hidden sm:inline text-[10px] uppercase tracking-[0.3em] text-muted-foreground">Medspa</span>
+            </div>
+          </Link>
+          <nav className="hidden md:flex items-center gap-8 text-sm">
             {!isPortal && (
               <>
-                <NavLink to="/services" className="py-3 border-b border-border">Services & Pricing</NavLink>
-                <NavLink to="/account/auth" className="py-3 border-b border-border">My Account</NavLink>
-                <NavLink to="/faq" className="py-3 border-b border-border">FAQ</NavLink>
+                <NavLink to="/" end className={({ isActive }) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Home</NavLink>
+                <NavLink to="/services" className={({ isActive }) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Services & Pricing</NavLink>
+                <NavLink to="/model" className={({ isActive }) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>Model Application</NavLink>
+                <NavLink to="/account/auth" className={({ isActive }) => isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground transition"}>My Account</NavLink>
               </>
             )}
-            <NavLink to="/book" className="py-3 border-b border-border">Book Appointment</NavLink>
-
-            <a href="tel:4083511873" className="py-3 flex items-center gap-2 text-muted-foreground border-b border-border"><Phone className="h-3.5 w-3.5" /> Call 408 · 351 · 1873</a>
-            <a href="sms:+14083511873" className="py-3 flex items-center gap-2 text-muted-foreground border-b border-border">💬 Text us</a>
-            <div className="py-3 flex items-center justify-between">
-              <span className="text-muted-foreground">Appearance</span>
-              <ThemeToggle />
-            </div>
+            <ThemeToggle />
+            <NavLink to="/book" className="rounded-full bg-primary px-5 py-2 text-primary-foreground hover:opacity-90 transition shadow-soft">Book Appointment</NavLink>
           </nav>
+          <div className="md:hidden flex items-center gap-2 shrink-0">
+            <Link to="/book" className="rounded-full bg-primary px-3.5 py-2 text-sm text-primary-foreground">Book</Link>
+            <button
+              type="button"
+              onClick={() => setOpen(v => !v)}
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
+              className="relative z-50 inline-flex items-center justify-center h-12 w-12 -mr-2 rounded-full border border-border bg-background text-foreground active:scale-95 touch-manipulation"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
-      )}
-    </header>
+
+
+        {open && (
+          <div className="md:hidden border-t border-border bg-background">
+            <nav className="container mx-auto px-4 py-3 flex flex-col text-sm">
+              {!isPortal && (
+                <>
+                  <NavLink to="/services" className="py-3 border-b border-border">Services & Pricing</NavLink>
+                  <NavLink to="/account/auth" className="py-3 border-b border-border">My Account</NavLink>
+                  <NavLink to="/model" className="py-3 border-b border-border">Become a Model</NavLink>
+                  <NavLink to="/faq" className="py-3 border-b border-border">FAQ</NavLink>
+                </>
+              )}
+              <NavLink to="/book" className="py-3 border-b border-border">Book Appointment</NavLink>
+
+              <a href="tel:4083511873" className="py-3 flex items-center gap-2 text-muted-foreground border-b border-border"><Phone className="h-3.5 w-3.5" /> Call 408 · 351 · 1873</a>
+              <a href="sms:+14083511873" className="py-3 flex items-center gap-2 text-muted-foreground border-b border-border">💬 Text us</a>
+              <div className="py-3 flex items-center justify-between">
+                <span className="text-muted-foreground">Appearance</span>
+                <ThemeToggle />
+              </div>
+            </nav>
+          </div>
+        )}
+      </header>
     </>
   );
 };

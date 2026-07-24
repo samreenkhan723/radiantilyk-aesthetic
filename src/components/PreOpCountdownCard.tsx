@@ -4,6 +4,7 @@
 // the provider sees the same checkmarks in the chart at intake.
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getClientSession } from "@/hooks/useClientAuth";
 import { differenceInCalendarDays, format } from "date-fns";
 import { CalendarClock, CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -192,3 +193,4 @@ export function PreOpCountdownCard() {
     </div>
   );
 }
+

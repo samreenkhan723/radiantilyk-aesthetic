@@ -6,6 +6,7 @@
 // patient (clinical_photo_meta.is_shared_with_patient = true).
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getClientSession } from "@/hooks/useClientAuth";
 import { addDays, addMonths, format, formatDistanceToNowStrict } from "date-fns";
 import { Loader2, Download, Syringe, Droplet, Zap, Pill, FileText, CalendarClock, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -359,3 +360,4 @@ function Stat({ label, value, suffix }: { label: string; value: string; suffix?:
     </div>
   );
 }
+
