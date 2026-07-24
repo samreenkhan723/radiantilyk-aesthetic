@@ -186,10 +186,10 @@ export default function StaffLogin() {
     setPassword("12345678");
     const roleLabel =
       cleanEmail === "admin@gmail.com" ? "Admin" :
-      cleanEmail === "md@gmail.com" ? "Medical Director" :
-      cleanEmail === "officer@gmail.com" ? "Security Officer" :
-      cleanEmail === "user@gmail.com" ? "Patient / User" :
-      "Staff";
+        cleanEmail === "md@gmail.com" ? "Medical Director" :
+          cleanEmail === "officer@gmail.com" ? "Security Officer" :
+            cleanEmail === "user@gmail.com" ? "Patient / User" :
+              "Staff";
     toast.info(`${roleLabel} credentials populated in Email & Password fields. Click Continue to sign in.`);
   };
 
@@ -220,10 +220,10 @@ export default function StaffLogin() {
       const roles: AppRole[] = isAd
         ? ["admin"]
         : isOfficer
-        ? ["privacy_officer", "staff"]
-        : isMD
-        ? ["medical_director", "staff"]
-        : ["staff"];
+          ? ["privacy_officer", "staff"]
+          : isMD
+            ? ["medical_director", "staff"]
+            : ["staff"];
       setPendingDemoLogin({ cleanEmail, roles, isAd });
       setLoading(false);
       setStep("mfa-verify");
